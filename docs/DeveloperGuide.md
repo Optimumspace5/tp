@@ -335,6 +335,10 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 1.  Should work on any _mainstream OS_ as long as it has Java `17` or above installed.
 2.  Should be able to hold up to 1000 persons without a noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+4.  All contact data stored locally must be encrypted (using an encryption algorithm such as AES-256); it should be unreadable if the raw file is opened in a standard text editor.
+5.  The application process name must not contain the words "Spy" or "Secret" to avoid detection. 
+6.  The application must not produce any log files, crash dumps, or temporary files that contain plain-text contact information outside of the dummy interface. 
+7.  A failed "unlock" in the dummy interface must not provide any visual or auditory feedback that hints at the existence of a hidden layer.
 
 *{More to be added}*
 
