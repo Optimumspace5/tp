@@ -13,7 +13,11 @@ public class Remark {
     public static final String MESSAGE_CONSTRAINTS = "Remarks can take any values, and it can be blank.";
 
     public final String value;
-
+/**
+ * Constructs a {@code Remark}.
+ *
+ * @param remark A valid remark.
+ */
     public Remark(String remark) {
         requireNonNull(remark);
         AppUtil.checkArgument(isValidRemark(remark), MESSAGE_CONSTRAINTS);

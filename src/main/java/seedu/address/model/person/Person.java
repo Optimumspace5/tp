@@ -23,7 +23,9 @@ public class Person {
     private final Address address;
     private final Remark remark;
     private final Set<Tag> tags = new HashSet<>();
-
+/**
+ * Every field must be present and not null.
+ */
     public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags) {
         requireAllNonNull(name, phone, email, address, remark, tags);
         this.name = name;
@@ -57,7 +59,10 @@ public class Person {
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
     }
-
+/**
+ * Returns true if both persons have the same name.
+ * This defines a weaker notion of equality between two persons.
+ */
     public boolean isSamePerson(Person otherPerson) {
         if (otherPerson == this) {
             return true;

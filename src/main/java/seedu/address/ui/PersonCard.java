@@ -34,7 +34,9 @@ public class PersonCard extends UiPart<Region> {
     private Label remark;
     @FXML
     private FlowPane tags;
-
+/**
+ * Creates a {@code PersonCard} with the given {@code Person} and index to display.
+ */
     public PersonCard(Person person, int displayedIndex) {
         super(FXML);
         this.person = person;
