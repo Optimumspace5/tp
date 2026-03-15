@@ -6,25 +6,27 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import javafx.scene.control.TextInputDialog;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.FileUtil;
+import seedu.address.logic.Logic;
+import seedu.address.ui.PasswordWindow;
 
 /**
  * Manages the security and authentication state of the application.
- * Manager handles password setup and basic file-based authentication checks.
  */
 public class SecurityManager implements Security {
     private static final Logger logger = LogsCenter.getLogger(SecurityManager.class);
     private static final Path PASSWORD_FILE_PATH = Paths.get("data", "password.txt");
 
+    private final Logic logic;
+
     /**
-     * Checks if the user is authenticated.
-     * If the password file exists, the user is considered authenticated.
-     * Otherwise, triggers a setup dialog for the user to initialize a password.
-     *
-     * @return true if the password file exists or is successfully created, false otherwise.
+     * Constructs a {@code SecurityManager} with the given {@code Logic}.
      */
+    public SecurityManager(Logic logic) {
+        this.logic = logic;
+    }
+
     @Override
     public boolean isAuthenticated() {
         if (FileUtil.isFileExists(PASSWORD_FILE_PATH)) {
@@ -33,19 +35,11 @@ public class SecurityManager implements Security {
         return showPasswordSetupDialog();
     }
 
-    /**
-     * Displays a JavaFX dialog to set up a new password and saves it to the local file system.
-     *
-     * @return true if the password was successfully entered and saved, false if the dialog was cancelled
-     * or an error occurred during file writing.
-     */
     private boolean showPasswordSetupDialog() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Security Setup");
-        dialog.setHeaderText("No password found.");
-        dialog.setContentText("Enter your password:");
+        PasswordWindow passwordWindow = new PasswordWindow(logic.getGuiSettings());
+        passwordWindow.show();
 
-        Optional<String> result = dialog.showAndWait();
+        Optional<String> result = passwordWindow.getPassword();
         if (result.isPresent()) {
             try {
                 FileUtil.createParentDirsOfFile(PASSWORD_FILE_PATH);
