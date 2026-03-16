@@ -82,15 +82,15 @@ public class CommandRegistry {
                 arguments -> new FindCommandParser().parse(arguments),
                 true, true);
         register(ListCommand.COMMAND_WORD,
-                arguments -> new ListCommand(), 
+                arguments -> new ListCommand(),
                 true, true);
 
         // Utility commands.
         register(ExitCommand.COMMAND_WORD,
-                arguments -> new ExitCommand(), 
+                arguments -> new ExitCommand(),
                 true, true);
         register(HelpCommand.COMMAND_WORD,
-                arguments -> new HelpCommand(), 
+                arguments -> new HelpCommand(),
                 true, true);
 
         // Mode transition commands.
