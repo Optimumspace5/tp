@@ -12,6 +12,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.AppMode;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -29,6 +30,9 @@ public class MainWindow extends UiPart<Stage> {
 
     private Stage primaryStage;
     private Logic logic;
+
+    // Current operating mode of the app, defaults to LOCKED on startup
+    private AppMode currentMode = AppMode.LOCKED;
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
@@ -146,6 +150,17 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
+    /**
+     * Switches the app's operating mode and updates the UI accordingly.
+     * Currently, this only changes the window title.
+     * TODO: Update the list of contacts displaed based on the mode
+     */
+    private void setMode(AppMode mode) {
+        currentMode = mode;
+        boolean isLocked = mode == AppMode.LOCKED;
+        primaryStage.setTitle(isLocked ? "AddressBook" : "Spyglass");
+    }
+
     void show() {
         primaryStage.show();
     }
@@ -174,6 +189,10 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
+
+            // Handle mode change if requested by the command result
+            commandResult.getRequestedMode().ifPresent(this::setMode);
+
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
