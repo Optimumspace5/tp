@@ -6,7 +6,6 @@ import seedu.address.model.Model;
 /**
  * Switches the app to the Unlocked interface.
  */
-
 public class UnlockCommand extends Command {
 
     public static final String COMMAND_WORD = "unlock";

@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.logic.AppMode;
 import seedu.address.model.person.Person;
 
 /**
@@ -53,30 +54,52 @@ public interface Model {
     ReadOnlyAddressBook getAddressBook();
 
     /**
-     * Returns true if a person with the same identity as {@code person} exists in the address book.
+     * Returns an unmodifiable view of the locked person list.
+     */
+    ObservableList<Person> getLockedPersonList();
+
+    /**
+     * Returns an unmodifiable view of the unlocked person list.
+     */
+    ObservableList<Person> getUnlockedPersonList();
+
+    /**
+     * Updates the currently active contact list based on the given app mode.
+     */
+    void setCurrentMode(AppMode mode);
+
+    /**
+     * Returns true if a person with the same identity as {@code person} exists in the currently active contact list.
      */
     boolean hasPerson(Person person);
 
     /**
-     * Deletes the given person.
-     * The person must exist in the address book.
+     * Deletes the given person from the currently active contact list.
+     * The person must exist in the active contact list.
      */
     void deletePerson(Person target);
 
     /**
-     * Adds the given person.
-     * {@code person} must not already exist in the address book.
+     * Clears all persons from the currently active contact list.
+     */
+    void clearPersons();
+
+    /**
+     * Adds the given person to the currently active contact list.
+     * {@code person} must not already exist in the active contact list.
      */
     void addPerson(Person person);
 
     /**
-     * Replaces the given person {@code target} with {@code editedPerson}.
-     * {@code target} must exist in the address book.
-     * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
+     * Replaces the given person {@code target} with {@code editedPerson}
+     * in the currently active contact list.
+     * {@code target} must exist in the active contact list.
+     * The identity of {@code editedPerson} must not be the same as another
+     * existing person in the active contact list.
      */
     void setPerson(Person target, Person editedPerson);
 
-    /** Returns an unmodifiable view of the filtered person list */
+    /** Returns an unmodifiable view of the filtered person list for the currently active contact list */
     ObservableList<Person> getFilteredPersonList();
 
     /**

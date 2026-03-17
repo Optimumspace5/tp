@@ -43,10 +43,12 @@ public class SampleDataUtil {
     public static ReadOnlyAddressBook getSampleAddressBook() {
         AddressBook sampleAb = new AddressBook();
         for (Person samplePerson : getSamplePersons()) {
-            sampleAb.addPerson(samplePerson);
+            sampleAb.addLockedPerson(samplePerson);
+            sampleAb.addUnlockedPerson(samplePerson);
         }
         return sampleAb;
     }
+
 
     /**
      * Returns a tag set containing the list of strings given.

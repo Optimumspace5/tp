@@ -50,6 +50,7 @@ public class LogicManager implements Logic {
         this.storage = storage;
         this.modeManager = modeManager;
         this.addressBookParser = new AddressBookParser(modeManager::getMode);
+        this.model.setCurrentMode(modeManager.getMode());
     }
 
     @Override
@@ -59,7 +60,10 @@ public class LogicManager implements Logic {
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
-        commandResult.getRequestedMode().ifPresent(modeManager::transitionTo);
+        commandResult.getRequestedMode().ifPresent(mode -> {
+            modeManager.transitionTo(mode);
+            model.setCurrentMode(mode);
+        });
 
         try {
             storage.saveAddressBook(model.getAddressBook());

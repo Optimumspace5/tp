@@ -9,11 +9,17 @@ import seedu.address.model.person.Person;
 public interface ReadOnlyAddressBook {
 
     /**
-     * Returns an unmodifiable view of the persons list.
-     * This list will not contain any duplicate persons.
+     * Returns an unmodifiable view of the locked persons list.
+     * This list will not contain duplicate persons.
      */
-    ObservableList<Person> getPersonList();
+    ObservableList<Person> getLockedPersonList();
 
+    /**
+     * Returns an unmodifiable view of the unlocked persons list.
+     * This list will not contain duplicate persons.
+     */
+    ObservableList<Person> getUnlockedPersonList();
+    
     /**
      * Returns the password required to access the address book data.
      */

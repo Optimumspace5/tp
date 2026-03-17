@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.AppMode;
 import seedu.address.model.person.Person;
 
 /**
@@ -21,7 +22,8 @@ public class ModelManager implements Model {
 
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
-    private final FilteredList<Person> filteredPersons;
+    private FilteredList<Person> filteredPersons;
+    private AppMode currentMode;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -33,7 +35,8 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        this.currentMode = AppMode.LOCKED;
+        this.filteredPersons = new FilteredList<>(getActivePersonSourceList());
     }
 
     public ModelManager() {
@@ -80,6 +83,7 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
+        refreshFilteredPersonList();
     }
 
     @Override
@@ -88,19 +92,60 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public ObservableList<Person> getLockedPersonList() {
+        return addressBook.getLockedPersonList();
+    }
+
+    @Override
+    public ObservableList<Person> getUnlockedPersonList() {
+        return addressBook.getUnlockedPersonList();
+    }
+
+    @Override
+    public void setCurrentMode(AppMode mode) {
+        requireNonNull(mode);
+        currentMode = mode;
+        refreshFilteredPersonList();
+    }
+
+    @Override
     public boolean hasPerson(Person person) {
         requireNonNull(person);
-        return addressBook.hasPerson(person);
+        return isLockedMode()
+                ? addressBook.hasLockedPerson(person)
+                : addressBook.hasUnlockedPerson(person);
     }
 
     @Override
     public void deletePerson(Person target) {
-        addressBook.removePerson(target);
+        requireNonNull(target);
+
+        if (isLockedMode()) {
+            addressBook.removeLockedPerson(target);
+        } else {
+            addressBook.removeUnlockedPerson(target);
+        }
+    }
+
+    @Override
+    public void clearPersons() {
+        if (isLockedMode()) {
+            addressBook.clearLockedPersons();
+        } else {
+            addressBook.clearUnlockedPersons();
+        }
+        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override
     public void addPerson(Person person) {
-        addressBook.addPerson(person);
+        requireNonNull(person);
+
+        if (isLockedMode()) {
+            addressBook.addLockedPerson(person);
+        } else {
+            addressBook.addUnlockedPerson(person);
+        }
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
@@ -108,7 +153,11 @@ public class ModelManager implements Model {
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
 
-        addressBook.setPerson(target, editedPerson);
+        if (isLockedMode()) {
+            addressBook.setLockedPerson(target, editedPerson);
+        } else {
+            addressBook.setUnlockedPerson(target, editedPerson);
+        }
     }
 
     //=========== Password ===================================================================================
@@ -127,8 +176,8 @@ public class ModelManager implements Model {
     //=========== Filtered Person List Accessors =============================================================
 
     /**
-     * Returns an unmodifiable view of the list of {@code Person} backed by the internal list of
-     * {@code versionedAddressBook}
+     * Returns an unmodifiable view of the list of {@code Person} backed by the
+     * currently active contact list.
      */
     @Override
     public ObservableList<Person> getFilteredPersonList() {
@@ -139,6 +188,22 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+    }
+
+    private boolean isLockedMode() {
+        return currentMode == AppMode.LOCKED;
+    }
+
+    private ObservableList<Person> getActivePersonSourceList() {
+        return isLockedMode() ? addressBook.getLockedPersonList() : addressBook.getUnlockedPersonList();
+    }
+
+    private void refreshFilteredPersonList() {
+        Predicate<? super Person> currentPredicate = filteredPersons != null
+                ? filteredPersons.getPredicate()
+                : PREDICATE_SHOW_ALL_PERSONS;
+        filteredPersons = new FilteredList<>(getActivePersonSourceList());
+        filteredPersons.setPredicate(currentPredicate != null ? currentPredicate : PREDICATE_SHOW_ALL_PERSONS);
     }
 
     @Override
@@ -155,7 +220,8 @@ public class ModelManager implements Model {
         ModelManager otherModelManager = (ModelManager) other;
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && currentMode == otherModelManager.currentMode;
     }
 
 }

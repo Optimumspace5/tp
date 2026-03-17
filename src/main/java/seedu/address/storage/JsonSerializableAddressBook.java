@@ -19,19 +19,28 @@ import seedu.address.model.person.Person;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
-    public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_LOCKED_PERSON =
+            "Locked persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_UNLOCKED_PERSON =
+            "Unlocked persons list contains duplicate person(s).";
 
     private final String password;
-    private final List<JsonAdaptedPerson> persons = new ArrayList<>();
+    private final List<JsonAdaptedPerson> lockedPersons = new ArrayList<>();
+    private final List<JsonAdaptedPerson> unlockedPersons = new ArrayList<>();
 
     /**
-     * Constructs a {@code JsonSerializableAddressBook} with the given persons and password.
+     * Constructs a {@code JsonSerializableAddressBook} with the given locked persons,
+     * unlocked persons, and password.
      */
     @JsonCreator
-    public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
+    public JsonSerializableAddressBook(@JsonProperty("lockedPersons") List<JsonAdaptedPerson> lockedPersons,
+                                       @JsonProperty("unlockedPersons") List<JsonAdaptedPerson> unlockedPersons,
                                        @JsonProperty("password") String password) {
-        if (persons != null) {
-            this.persons.addAll(persons);
+        if (lockedPersons != null) {
+            this.lockedPersons.addAll(lockedPersons);
+        }
+        if (unlockedPersons != null) {
+            this.unlockedPersons.addAll(unlockedPersons);
         }
         this.password = (password != null) ? password : "";
     }
@@ -40,14 +49,19 @@ class JsonSerializableAddressBook {
      * Converts a given {@code ReadOnlyAddressBook} into this class for Jackson use.
      */
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
-        persons.addAll(source.getPersonList().stream().map(JsonAdaptedPerson::new).collect(Collectors.toList()));
+        lockedPersons.addAll(source.getLockedPersonList().stream()
+                .map(JsonAdaptedPerson::new)
+                .collect(Collectors.toList()));
+        unlockedPersons.addAll(source.getUnlockedPersonList().stream()
+                .map(JsonAdaptedPerson::new)
+                .collect(Collectors.toList()));
         this.password = source.getPassword();
     }
 
     /**
      * Converts this address book into the model's {@code AddressBook} object.
      *
-     * @throws IllegalValueException if there were any data constraints violated in the person list.
+     * @throws IllegalValueException if there were any data constraints violated in either person list.
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
@@ -58,15 +72,22 @@ class JsonSerializableAddressBook {
             addressBook.setPassword(password);
         }
 
-        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
+        for (JsonAdaptedPerson jsonAdaptedPerson : lockedPersons) {
             Person person = jsonAdaptedPerson.toModelType();
-            if (addressBook.hasPerson(person)) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
+            if (addressBook.hasLockedPerson(person)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_LOCKED_PERSON);
             }
-            addressBook.addPerson(person);
+            addressBook.addLockedPerson(person);
+        }
+
+        for (JsonAdaptedPerson jsonAdaptedPerson : unlockedPersons) {
+            Person person = jsonAdaptedPerson.toModelType();
+            if (addressBook.hasUnlockedPerson(person)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_UNLOCKED_PERSON);
+            }
+            addressBook.addUnlockedPerson(person);
         }
 
         return addressBook;
     }
 }
-

@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Collections;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
@@ -11,12 +12,14 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
 
 /**
- * Wraps all data at the address-book level
- * Duplicates are not allowed (by .isSamePerson comparison)
+ * Wraps all data at the address-book level.
+ * Duplicates are not allowed within each contact list
+ * (by .isSamePerson comparison).
  */
 public class AddressBook implements ReadOnlyAddressBook {
 
-    private final UniquePersonList persons;
+    private final UniquePersonList lockedPersons;
+    private final UniquePersonList unlockedPersons;
     private String password = "";
 
     /*
@@ -24,7 +27,8 @@ public class AddressBook implements ReadOnlyAddressBook {
      * between constructors. See https://docs.oracle.com/javase/tutorial/java/javaOO/initial.html
      */
     {
-        persons = new UniquePersonList();
+        lockedPersons = new UniquePersonList();
+        unlockedPersons = new UniquePersonList();
     }
 
     public AddressBook() {}
@@ -40,11 +44,19 @@ public class AddressBook implements ReadOnlyAddressBook {
     //// list overwrite operations
 
     /**
-     * Replaces the contents of the person list with {@code persons}.
+     * Replaces the contents of the locked person list with {@code persons}.
      * {@code persons} must not contain duplicate persons.
      */
-    public void setPersons(List<Person> persons) {
-        this.persons.setPersons(persons);
+    public void setLockedPersons(List<Person> persons) {
+        this.lockedPersons.setPersons(persons);
+    }
+
+    /**
+     * Replaces the contents of the unlocked person list with {@code persons}.
+     * {@code persons} must not contain duplicate persons.
+     */
+    public void setUnlockedPersons(List<Person> persons) {
+        unlockedPersons.setPersons(persons);
     }
 
     /**
@@ -53,43 +65,87 @@ public class AddressBook implements ReadOnlyAddressBook {
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
 
-        setPersons(newData.getPersonList());
+        setLockedPersons(newData.getLockedPersonList());
+        setUnlockedPersons(newData.getUnlockedPersonList());
         setPassword(newData.getPassword());
     }
 
     /**
-     * Returns true if a person with the same identity as {@code person} exists in the address book.
+     * Returns true if a person with the same identity as {@code person}
+     * exists in the locked contact list.
      */
-    public boolean hasPerson(Person person) {
+    public boolean hasLockedPerson(Person person) {
         requireNonNull(person);
-        return persons.contains(person);
+        return lockedPersons.contains(person);
     }
 
     /**
-     * Adds a person to the address book.
-     * The person must not already exist in the address book.
+     * Returns true if a person with the same identity as {@code person}
+     * exists in the unlocked contact list.
      */
-    public void addPerson(Person p) {
-        persons.add(p);
+    public boolean hasUnlockedPerson(Person person) {
+        requireNonNull(person);
+        return unlockedPersons.contains(person);
     }
 
     /**
-     * Replaces the given person {@code target} in the list with {@code editedPerson}.
-     * {@code target} must exist in the address book.
-     * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
+     * Adds a person to the locked contact list.
+     * The person must not already exist in the locked contact list.
      */
-    public void setPerson(Person target, Person editedPerson) {
+    public void addLockedPerson(Person p) {
+        lockedPersons.add(p);
+    }
+
+    /**
+     * Adds a person to the unlocked contact list.
+     * The person must not already exist in the unlocked contact list.
+     */
+    public void addUnlockedPerson(Person p) {
+        unlockedPersons.add(p);
+    }
+
+    /**
+     * Replaces the given person {@code target} in the locked list with {@code editedPerson}.
+     */
+    public void setLockedPerson(Person target, Person editedPerson) {
         requireNonNull(editedPerson);
-
-        persons.setPerson(target, editedPerson);
+        lockedPersons.setPerson(target, editedPerson);
+    }
+    
+    /**
+     * Replaces the given person {@code target} in the unlocked list with {@code editedPerson}.
+     */
+    public void setUnlockedPerson(Person target, Person editedPerson) {
+        requireNonNull(editedPerson);
+        unlockedPersons.setPerson(target, editedPerson);
     }
 
     /**
-     * Removes {@code key} from this {@code AddressBook}.
-     * {@code key} must exist in the address book.
+     * Removes {@code key} from the locked contact list.
      */
-    public void removePerson(Person key) {
-        persons.remove(key);
+    public void removeLockedPerson(Person key) {
+        lockedPersons.remove(key);
+    }
+
+    /**
+     * Removes {@code key} from the unlocked contact list.
+     */
+    public void removeUnlockedPerson(Person key) {
+        unlockedPersons.remove(key);
+    }
+
+    /**
+     * Clears all persons from the locked contact list.
+     */
+    public void clearLockedPersons() {
+        lockedPersons.setPersons(Collections.emptyList());
+    }
+
+    /**
+     * Clears all persons from the unlocked contact list.
+     */
+    public void clearUnlockedPersons() {
+        unlockedPersons.setPersons(Collections.emptyList());
     }
 
 
@@ -118,14 +174,20 @@ public class AddressBook implements ReadOnlyAddressBook {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("persons", persons)
+                .add("lockedPersons", lockedPersons)
+                .add("unlockedPersons", unlockedPersons)
                 .add("password", password)
                 .toString();
     }
 
     @Override
-    public ObservableList<Person> getPersonList() {
-        return persons.asUnmodifiableObservableList();
+    public ObservableList<Person> getLockedPersonList() {
+        return lockedPersons.asUnmodifiableObservableList();
+    }
+
+    @Override
+    public ObservableList<Person> getUnlockedPersonList() {
+        return unlockedPersons.asUnmodifiableObservableList();
     }
 
     @Override
@@ -140,12 +202,13 @@ public class AddressBook implements ReadOnlyAddressBook {
         }
 
         AddressBook otherAddressBook = (AddressBook) other;
-        return persons.equals(otherAddressBook.persons)
+        return lockedPersons.equals(otherAddressBook.lockedPersons)
+                && unlockedPersons.equals(otherAddressBook.unlockedPersons)
                 && Objects.equals(password, otherAddressBook.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(persons, password);
+        return Objects.hash(lockedPersons, unlockedPersons, password);
     }
 }
