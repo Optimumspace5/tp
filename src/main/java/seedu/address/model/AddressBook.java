@@ -2,9 +2,9 @@ package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Collections;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
@@ -111,7 +111,8 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(editedPerson);
         lockedPersons.setPerson(target, editedPerson);
     }
-    
+
+
     /**
      * Replaces the given person {@code target} in the unlocked list with {@code editedPerson}.
      */

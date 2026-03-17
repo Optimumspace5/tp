@@ -19,7 +19,7 @@ public interface ReadOnlyAddressBook {
      * This list will not contain duplicate persons.
      */
     ObservableList<Person> getUnlockedPersonList();
-    
+
     /**
      * Returns the password required to access the address book data.
      */

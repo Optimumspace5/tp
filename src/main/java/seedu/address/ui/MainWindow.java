@@ -168,7 +168,7 @@ public class MainWindow extends UiPart<Stage> {
         primaryStage.setTitle(isLocked ? "AddressBook" : "Spyglass");
         refreshPersonListPanel();
     }
-    
+
     void show() {
         primaryStage.show();
     }

@@ -28,7 +28,8 @@ public class AddressBookTest {
 
     @Test
     public void constructor() {
-        assertEquals(Collections.emptyList(), addressBook.getPersonList());
+        assertEquals(Collections.emptyList(), addressBook.getLockedPersonList());
+        assertEquals(Collections.emptyList(), addressBook.getUnlockedPersonList());
     }
 
     @Test
@@ -44,66 +45,78 @@ public class AddressBookTest {
     }
 
     @Test
-    public void resetData_withDuplicatePersons_throwsDuplicatePersonException() {
-        // Two persons with the same identity fields
+    public void resetData_withDuplicateLockedPersons_throwsDuplicatePersonException() {
         Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
-        List<Person> newPersons = Arrays.asList(ALICE, editedAlice);
-        AddressBookStub newData = new AddressBookStub(newPersons);
+        List<Person> newLockedPersons = Arrays.asList(ALICE, editedAlice);
+        AddressBookStub newData = new AddressBookStub(newLockedPersons, Collections.emptyList());
 
         assertThrows(DuplicatePersonException.class, () -> addressBook.resetData(newData));
     }
 
     @Test
-    public void hasPerson_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> addressBook.hasPerson(null));
+    public void hasLockedPerson_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.hasLockedPerson(null));
     }
 
     @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
-        assertFalse(addressBook.hasPerson(ALICE));
+    public void hasLockedPerson_personNotInAddressBook_returnsFalse() {
+        assertFalse(addressBook.hasLockedPerson(ALICE));
     }
 
     @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
-        addressBook.addPerson(ALICE);
-        assertTrue(addressBook.hasPerson(ALICE));
+    public void hasLockedPerson_personInAddressBook_returnsTrue() {
+        addressBook.addLockedPerson(ALICE);
+        assertTrue(addressBook.hasLockedPerson(ALICE));
     }
 
     @Test
-    public void hasPerson_personWithSameIdentityFieldsInAddressBook_returnsTrue() {
-        addressBook.addPerson(ALICE);
+    public void hasLockedPerson_personWithSameIdentityFieldsInAddressBook_returnsTrue() {
+        addressBook.addLockedPerson(ALICE);
         Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
-        assertTrue(addressBook.hasPerson(editedAlice));
+        assertTrue(addressBook.hasLockedPerson(editedAlice));
     }
 
     @Test
-    public void getPersonList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> addressBook.getPersonList().remove(0));
+    public void getLockedPersonList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> addressBook.getLockedPersonList().remove(0));
+    }
+
+    @Test
+    public void getUnlockedPersonList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> addressBook.getUnlockedPersonList().remove(0));
     }
 
     @Test
     public void toStringMethod() {
         String expected = AddressBook.class.getCanonicalName()
-                + "{persons=" + addressBook.getPersonList()
+                + "{lockedPersons=" + addressBook.getLockedPersonList()
+                + ", unlockedPersons=" + addressBook.getUnlockedPersonList()
                 + ", password=" + addressBook.getPassword() + "}";
         assertEquals(expected, addressBook.toString());
     }
 
     /**
-     * A stub ReadOnlyAddressBook whose persons list can violate interface constraints.
+     * A stub ReadOnlyAddressBook whose persons lists can violate interface constraints.
      */
     private static class AddressBookStub implements ReadOnlyAddressBook {
-        private final ObservableList<Person> persons = FXCollections.observableArrayList();
+        private final ObservableList<Person> lockedPersons = FXCollections.observableArrayList();
+        private final ObservableList<Person> unlockedPersons = FXCollections.observableArrayList();
 
-        AddressBookStub(Collection<Person> persons) {
-            this.persons.setAll(persons);
+        AddressBookStub(Collection<Person> lockedPersons, Collection<Person> unlockedPersons) {
+            this.lockedPersons.setAll(lockedPersons);
+            this.unlockedPersons.setAll(unlockedPersons);
         }
 
         @Override
-        public ObservableList<Person> getPersonList() {
-            return persons;
+        public ObservableList<Person> getLockedPersonList() {
+            return lockedPersons;
+        }
+
+        @Override
+        public ObservableList<Person> getUnlockedPersonList() {
+            return unlockedPersons;
         }
 
         @Override
