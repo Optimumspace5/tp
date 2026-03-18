@@ -5,7 +5,7 @@
 
 .list-cell:empty {
     /* Empty cells will not have alternating colours */
-    -fx-background-color: #1b2535;
+    -fx-background-color: transparent;
 }
 
 /* Unused currently (class "tag-selector" not referenced in current FXML/Java)

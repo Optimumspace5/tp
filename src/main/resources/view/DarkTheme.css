@@ -137,12 +137,10 @@
 /* Applies to ListView controls (e.g. personListView in PersonListPanel.fxml). */
 .list-view {
     -fx-background-insets: 0;
-    -fx-padding: 6;
-    -fx-background-color: -app-surface;
-    -fx-background-radius: 8;
-    -fx-border-color: -app-border;
-    -fx-border-width: 1;
-    -fx-border-radius: 8;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
 }
 
 /* Applies to internal ListView skin layers (virtual flow/sheet/placeholder/corner). */
@@ -151,14 +149,14 @@
 .list-view .virtual-flow .clipped-container .sheet,
 .list-view .placeholder,
 .list-view .corner {
-    -fx-background-color: -app-surface;
+    -fx-background-color: transparent;
 }
 
 /* Applies to each visible ListCell container in the ListView. */
 .list-cell {
     -fx-label-padding: 0 0 0 0;
     -fx-graphic-text-gap : 0;
-    -fx-padding: 4 0 4 0;
+    -fx-padding: 4 4 4 4;
 }
 
 /* Applies to all filled rows in the ListView (odd/even unified). */
@@ -215,6 +213,15 @@
     -fx-border-top-width: 1px;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+/* Applies to personListPanelPlaceholder host container; functional only (no visible shell). */
+.person-list-host {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
 }
@@ -392,19 +399,35 @@
 
 /* Applies to ScrollBar track container. */
 .scroll-bar {
-    -fx-background-color: -app-bg;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 8;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 8;
+}
+
+.scroll-bar .track,
+.scroll-bar .track-background {
+    -fx-background-color: transparent;
 }
 
 /* Applies to ScrollBar thumb/draggable handle. */
 .scroll-bar .thumb {
     -fx-background-color: -app-border;
-    -fx-background-insets: 3;
+    -fx-background-insets: 1;
+    -fx-background-radius: 999;
 }
 
 /* Applies to ScrollBar increment/decrement button areas. */
 .scroll-bar .increment-button, .scroll-bar .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 0 0 0 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
 }
 
 /* Applies to ScrollBar arrow glyph nodes (hidden using empty shape). */
@@ -414,12 +437,12 @@
 
 /* Applies to vertical ScrollBar arrows (hit area sizing). */
 .scroll-bar:vertical .increment-arrow, .scroll-bar:vertical .decrement-arrow {
-    -fx-padding: 1 8 1 8;
+    -fx-padding: 0;
 }
 
 /* Applies to horizontal ScrollBar arrows (hit area sizing). */
 .scroll-bar:horizontal .increment-arrow, .scroll-bar:horizontal .decrement-arrow {
-    -fx-padding: 8 1 8 1;
+    -fx-padding: 0;
 }
 
 /* Applies to id="cardPane" root in PersonListCard.fxml. */

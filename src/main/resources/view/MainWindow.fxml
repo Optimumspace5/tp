@@ -50,7 +50,7 @@
 
             <StackPane fx:id="personListPanelPlaceholder"
                        VBox.vgrow="ALWAYS"
-                       styleClass="pane-with-border" />
+                       styleClass="person-list-host" />
           </VBox>
         </HBox>
 
