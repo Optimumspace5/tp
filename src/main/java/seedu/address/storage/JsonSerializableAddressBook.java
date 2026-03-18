@@ -20,9 +20,9 @@ import seedu.address.model.person.Person;
 class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_LOCKED_PERSON =
-            "Locked persons list contains duplicate person(s).";
+            "Contact list contains duplicate person(s).";
     public static final String MESSAGE_DUPLICATE_UNLOCKED_PERSON =
-            "Unlocked persons list contains duplicate person(s).";
+            "Contact list contains duplicate person(s).";
 
     private final String password;
     private final List<JsonAdaptedPerson> lockedPersons = new ArrayList<>();

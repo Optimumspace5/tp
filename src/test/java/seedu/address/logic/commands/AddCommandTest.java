@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
-import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
@@ -130,7 +129,12 @@ public class AddCommandTest {
         }
 
         @Override
-        public void setCurrentMode(AppMode mode) {
+        public void useLockedPersonList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void useUnlockedPersonList() {
             throw new AssertionError("This method should not be called.");
         }
 

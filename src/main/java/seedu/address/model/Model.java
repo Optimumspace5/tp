@@ -5,7 +5,6 @@ import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
-import seedu.address.logic.AppMode;
 import seedu.address.model.person.Person;
 
 /**
@@ -64,9 +63,14 @@ public interface Model {
     ObservableList<Person> getUnlockedPersonList();
 
     /**
-     * Updates the currently active contact list based on the given app mode.
+     * Switches the active contact list to the locked persons list.
      */
-    void setCurrentMode(AppMode mode);
+    void useLockedPersonList();
+
+    /**
+     * Switches the active contact list to the unlocked persons list.
+     */
+    void useUnlockedPersonList();
 
     /**
      * Returns true if a person with the same identity as {@code person} exists in the currently active contact list.

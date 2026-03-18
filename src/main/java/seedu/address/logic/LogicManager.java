@@ -50,7 +50,7 @@ public class LogicManager implements Logic {
         this.storage = storage;
         this.modeManager = modeManager;
         this.addressBookParser = new AddressBookParser(modeManager::getMode);
-        this.model.setCurrentMode(modeManager.getMode());
+        syncModelToCurrentMode();
     }
 
     @Override
@@ -62,7 +62,7 @@ public class LogicManager implements Logic {
         commandResult = command.execute(model);
         commandResult.getRequestedMode().ifPresent(mode -> {
             modeManager.transitionTo(mode);
-            model.setCurrentMode(mode);
+            syncModelToCurrentMode();
         });
 
         try {
@@ -119,5 +119,13 @@ public class LogicManager implements Logic {
     @Override
     public AppMode getCurrentMode() {
         return modeManager.getMode();
+    }
+
+    private void syncModelToCurrentMode() {
+        if (getCurrentMode() == AppMode.LOCKED) {
+            model.useLockedPersonList();
+        } else {
+            model.useUnlockedPersonList();
+        }
     }
 }
