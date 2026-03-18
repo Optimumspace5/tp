@@ -84,4 +84,14 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Returns the password of the address book.
+     */
+    String getAddressBookPassword();
+
+    /**
+     * Sets the password for the address book.
+     */
+    void setAddressBookPassword(String password);
 }

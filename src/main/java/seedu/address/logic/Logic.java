@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 import javafx.collections.ObservableList;
@@ -47,4 +48,26 @@ public interface Logic {
      * Set the user prefs' GUI settings.
      */
     void setGuiSettings(GuiSettings guiSettings);
+
+    /**
+     * Returns the password of the address book.
+     */
+    String getAddressBookPassword();
+
+    /**
+     * Sets the password for the address book.
+     *
+     * @param password The new password to be set.
+     */
+    void setAddressBookPassword(String password);
+
+    /**
+     * Saves the address book.
+     */
+    void saveAddressBook() throws IOException;
+
+    /**
+     * Returns the current app mode.
+     */
+    AppMode getCurrentMode();
 }

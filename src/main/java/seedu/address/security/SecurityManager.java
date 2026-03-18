@@ -1,14 +1,11 @@
 package seedu.address.security;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.commons.util.FileUtil;
 import seedu.address.logic.Logic;
 import seedu.address.security.util.PasswordUtil;
 import seedu.address.ui.PasswordWindow;
@@ -17,25 +14,23 @@ import seedu.address.ui.PasswordWindow;
  * Manages the security and authentication state of the application.
  * The {@code SecurityManager} handles the lifecycle of application access,
  * including initial password setup and persistent authentication state.
- * It coordinates between the UI (password collection) and the filesystem (persistence).
+ * It coordinates between the UI (password collection) and the model via {@code Logic}.
  */
 public class SecurityManager implements Security {
 
     private static final Logger logger = LogsCenter.getLogger(SecurityManager.class);
 
-    private final Path passwordFilePath;
     private final Logic logic;
     private final Supplier<Optional<String>> passwordSupplier;
 
     /**
      * Constructs a {@code SecurityManager} for production use.
-     * Uses the default data path {@code data/password.txt} and initializes a real
-     * {@link PasswordWindow} to collect user input.
+     * Initializes a real {@link PasswordWindow} to collect user input.
      *
-     * @param logic The logic component used to retrieve GUI settings for the UI.
+     * @param logic The logic component used to retrieve GUI settings and password state.
      */
     public SecurityManager(Logic logic) {
-        this(logic, Paths.get("data", "password.txt"), () -> {
+        this(logic, () -> {
             PasswordWindow passwordWindow = new PasswordWindow(logic.getGuiSettings());
             passwordWindow.show();
             return passwordWindow.getPassword();
@@ -44,40 +39,47 @@ public class SecurityManager implements Security {
 
     /**
      * Constructs a {@code SecurityManager} with custom dependencies.
-     * This constructor is primarily used for testing to inject mock file paths
-     * and simulated password input.
+     * This constructor is primarily used for testing to inject simulated password input.
      *
      * @param logic The logic component.
-     * @param passwordFilePath The path where the password hash is stored.
      * @param passwordSupplier A functional interface providing an Optional password string.
      */
-    public SecurityManager(Logic logic, Path passwordFilePath, Supplier<Optional<String>> passwordSupplier) {
+    public SecurityManager(Logic logic, Supplier<Optional<String>> passwordSupplier) {
         this.logic = logic;
-        this.passwordFilePath = passwordFilePath;
         this.passwordSupplier = passwordSupplier;
     }
 
     /**
      * Checks if the application is currently authenticated.
-     * If a password file exists at {@code passwordFilePath}, authentication is considered
-     * successful. If not, the first-time password setup dialog is triggered.
+     * If a password exists within the AddressBook JSON, authentication is successful.
+     * If not, the first-time password setup dialog is triggered.
      *
-     * @return True if authenticated or if setup is completed successfully; false if setup is cancelled.
+     * @return True if a password exists or if setup is completed successfully; false otherwise.
      */
     @Override
     public boolean isAuthenticated() {
-        if (FileUtil.isFileExists(passwordFilePath)) {
-            logger.info("Authentication successful: Password file detected at " + passwordFilePath);
+        String storedPassword = logic.getAddressBookPassword();
+
+        if (storedPassword != null && !storedPassword.isEmpty()
+                && PasswordUtil.isValidPassword(storedPassword)) {
+
+            logger.info("Valid password detected. Proceeding to authentication.");
             return true;
         }
-        logger.info("Authentication required: Starting first-time password setup.");
+
+        if (storedPassword != null && !storedPassword.isEmpty()) {
+            logger.warning("Invalid password detected in data file. Prompting for reset.");
+        } else {
+            logger.info("No password found. Starting first-time setup.");
+        }
+
         return showPasswordSetupDialog();
     }
 
     /**
      * Orchestrates the password setup process.
      * It retrieves the raw password from the {@code passwordSupplier} and attempts to
-     * persist it.
+     * update the model.
      *
      * @return True if a password was successfully provided and saved; false otherwise.
      */
@@ -92,22 +94,25 @@ public class SecurityManager implements Security {
     }
 
     /**
-     * Hashes the provided raw password and writes it to the local filesystem.
-     * This method handles directory creation if the parent folders do not exist.
+     * Saves the provided raw password to the model via logic.
      *
      * @param rawPassword The plain text password entered by the user.
-     * @return True if the hashed password was successfully written to disk; false otherwise.
+     * @return True if the password was valid and accepted; false otherwise.
      */
     private boolean savePassword(String rawPassword) {
-        try {
-            String hashedPassword = PasswordUtil.hashPassword(rawPassword);
-            FileUtil.createParentDirsOfFile(passwordFilePath);
-            FileUtil.writeToFile(passwordFilePath, hashedPassword);
-            logger.info("Security setup complete: Password saved to " + passwordFilePath);
-            return true;
-        } catch (IOException e) {
-            logger.severe("Security setup failed: Could not save password file. " + e.getMessage());
+        if (!PasswordUtil.isValidPassword(rawPassword)) {
             return false;
         }
+
+        logic.setAddressBookPassword(rawPassword);
+
+        try {
+            logic.saveAddressBook();
+            logger.info("Security setup complete: Password saved to data file.");
+        } catch (IOException e) {
+            logger.severe("Failed to save address book after password update.");
+        }
+
+        return true;
     }
 }

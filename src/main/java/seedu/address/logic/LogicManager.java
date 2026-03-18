@@ -31,15 +31,25 @@ public class LogicManager implements Logic {
 
     private final Model model;
     private final Storage storage;
+    private final AppModeManager modeManager;
     private final AddressBookParser addressBookParser;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
+     * The {@code ModeManager} will be initialized to the default locked mode.
      */
     public LogicManager(Model model, Storage storage) {
+        this(model, storage, new AppModeManager(AppMode.LOCKED));
+    }
+
+    /**
+     * Constructs a {@code LogicManager} with explicit app mode manager.
+     */
+    public LogicManager(Model model, Storage storage, AppModeManager modeManager) {
         this.model = model;
         this.storage = storage;
-        addressBookParser = new AddressBookParser();
+        this.modeManager = modeManager;
+        this.addressBookParser = new AddressBookParser(modeManager::getMode);
     }
 
     @Override
@@ -49,6 +59,7 @@ public class LogicManager implements Logic {
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
+        commandResult.getRequestedMode().ifPresent(modeManager::transitionTo);
 
         try {
             storage.saveAddressBook(model.getAddressBook());
@@ -84,5 +95,25 @@ public class LogicManager implements Logic {
     @Override
     public void setGuiSettings(GuiSettings guiSettings) {
         model.setGuiSettings(guiSettings);
+    }
+
+    @Override
+    public String getAddressBookPassword() {
+        return model.getAddressBookPassword();
+    }
+
+    @Override
+    public void setAddressBookPassword(String password) {
+        model.setAddressBookPassword(password);
+    }
+
+    @Override
+    public void saveAddressBook() throws IOException {
+        storage.saveAddressBook(model.getAddressBook());
+    }
+
+    @Override
+    public AppMode getCurrentMode() {
+        return modeManager.getMode();
     }
 }

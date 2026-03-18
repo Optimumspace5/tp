@@ -94,6 +94,41 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void getAddressBookPassword_defaultAddressBook_returnsEmptyString() {
+        assertEquals("", modelManager.getAddressBookPassword());
+    }
+
+    @Test
+    public void setAddressBookPassword_validPassword_setsPassword() {
+        String newPassword = "newPassword123";
+        modelManager.setAddressBookPassword(newPassword);
+        assertEquals(newPassword, modelManager.getAddressBookPassword());
+
+        // Verify it actually reached the underlying AddressBook
+        assertEquals(newPassword, modelManager.getAddressBook().getPassword());
+    }
+
+    @Test
+    public void setAddressBookPassword_nullPassword_setsEmptyString() {
+        modelManager.setAddressBookPassword(null);
+        assertEquals("", modelManager.getAddressBookPassword());
+    }
+
+    @Test
+    public void equals_differentPassword_returnsFalse() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).build();
+        UserPrefs userPrefs = new UserPrefs();
+
+        modelManager = new ModelManager(addressBook, userPrefs);
+        AddressBook addressBookWithDifferentPassword = new AddressBook(addressBook);
+        addressBookWithDifferentPassword.setPassword("different");
+
+        ModelManager otherModelManager = new ModelManager(addressBookWithDifferentPassword, userPrefs);
+
+        assertFalse(modelManager.equals(otherModelManager));
+    }
+
+    @Test
     public void equals() {
         AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
         AddressBook differentAddressBook = new AddressBook();
