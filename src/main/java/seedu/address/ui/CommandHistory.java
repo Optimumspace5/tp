@@ -20,6 +20,9 @@ public class CommandHistory extends UiPart<Region> {
     @FXML
     private TextArea commandHistory;
 
+    /**
+     * Creates a {@code CommandHistory} with the default FXML.
+     */
     public CommandHistory() {
         super(FXML);
         commandHistory.setWrapText(true);
@@ -28,7 +31,7 @@ public class CommandHistory extends UiPart<Region> {
     public void setFeedbackToUser(String feedbackToUser) {
         requireNonNull(feedbackToUser);
         log.add(feedbackToUser);
-        
+
         if (commandHistory.getText().isEmpty()) {
             commandHistory.setText("> " + feedbackToUser);
         } else {
