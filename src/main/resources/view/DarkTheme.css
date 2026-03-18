@@ -1,44 +1,78 @@
-.background {
-    -fx-background-color: derive(#1d1d1d, 20%);
-    background-color: #383838; /* Used in the default.html file */
+/* Applies to the root Scene node; defines shared palette tokens for all controls. */
+.root {
+    -fx-accent: #5e8dff;
+    -fx-focus-color: #5e8dff;
+    -fx-faint-focus-color: rgba(94, 141, 255, 0.18);
+    -fx-background-color: #111827;
+
+    -app-bg: #111827;
+    -app-bg-elevated: #0f172a;
+    -app-surface: #1b2535;
+    -app-surface-alt: #1f2937;
+    -app-surface-hover: #26364d;
+    -app-border: #334155;
+    -app-border-muted: #273449;
+    -app-row-even: #334155;
+    -app-row-odd: #3f4f66;
+    -app-row-selected: #4b5f7a;
+    -app-text-primary: #e2e8f0;
+    -app-text-secondary: #cbd5e1;
+    -app-text-muted: #94a3b8;
+    -app-accent: #5e8dff;
+    -app-tag-bg: #3b82f6;
 }
 
+/* Applies to containers with styleClass="background" (e.g. leftPanel/rightPanel). */
+.background {
+    -fx-background-color: -app-bg;
+    background-color: #111827; /* Used in the default.html file */
+}
+
+/* Applies to all Label controls by default unless overridden by more specific selectors. */
 .label {
     -fx-font-size: 11pt;
-    -fx-font-family: "Segoe UI Semibold";
-    -fx-text-fill: #555555;
-    -fx-opacity: 0.9;
+    -fx-font-family: "Segoe UI";
+    -fx-text-fill: -app-text-muted;
+    -fx-opacity: 1;
 }
 
+/* Applies to labels using styleClass="label-bright". */
 .label-bright {
     -fx-font-size: 11pt;
     -fx-font-family: "Segoe UI Semibold";
-    -fx-text-fill: white;
+    -fx-text-fill: -app-text-primary;
     -fx-opacity: 1;
 }
 
+/* Applies to labels using styleClass="label-header" (page/dialog headers). */
 .label-header {
-    -fx-font-size: 32pt;
-    -fx-font-family: "Segoe UI Light";
-    -fx-text-fill: white;
+    -fx-font-size: 28pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: -app-text-primary;
     -fx-opacity: 1;
 }
 
+/* Applies to all TextField controls globally (base typography). */
 .text-field {
-    -fx-font-size: 12pt;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11.5pt;
+    -fx-font-family: "Segoe UI";
 }
 
+/* Unused currently (no TabPane in current FXML/Java)
 .tab-pane {
     -fx-padding: 0 0 0 1;
 }
+*/
 
+/* Unused currently (no TabPane in current FXML/Java)
 .tab-pane .tab-header-area {
     -fx-padding: 0 0 0 0;
     -fx-min-height: 0;
     -fx-max-height: 0;
 }
+*/
 
+/* Unused currently (no TableView in current FXML/Java)
 .table-view {
     -fx-base: #1d1d1d;
     -fx-control-inner-background: #1d1d1d;
@@ -47,11 +81,15 @@
     -fx-table-header-border-color: transparent;
     -fx-padding: 5;
 }
+*/
 
+/* Unused currently (no TableView in current FXML/Java)
 .table-view .column-header-background {
     -fx-background-color: transparent;
 }
+*/
 
+/* Unused currently (no TableView in current FXML/Java)
 .table-view .column-header, .table-view .filler {
     -fx-size: 35;
     -fx-border-width: 0 0 1 0;
@@ -63,7 +101,9 @@
         transparent;
     -fx-border-insets: 0 10 1 0;
 }
+*/
 
+/* Unused currently (no TableView in current FXML/Java)
 .table-view .column-header .label {
     -fx-font-size: 20pt;
     -fx-font-family: "Segoe UI Light";
@@ -71,140 +111,202 @@
     -fx-alignment: center-left;
     -fx-opacity: 1;
 }
+*/
 
+/* Unused currently (no TableView in current FXML/Java)
 .table-view:focused .table-row-cell:filled:focused:selected {
     -fx-background-color: -fx-focus-color;
 }
+*/
 
+/* Unused currently (no SplitPane in current FXML/Java)
 .split-pane:horizontal .split-pane-divider {
     -fx-background-color: derive(#1d1d1d, 20%);
     -fx-border-color: transparent transparent transparent #4d4d4d;
 }
+*/
 
+/* Unused currently (no SplitPane in current FXML/Java)
 .split-pane {
     -fx-border-radius: 1;
     -fx-border-width: 1;
     -fx-background-color: derive(#1d1d1d, 20%);
 }
+*/
 
+/* Applies to ListView controls (e.g. personListView in PersonListPanel.fxml). */
 .list-view {
     -fx-background-insets: 0;
     -fx-padding: 0;
-    -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
 }
 
+/* Applies to internal ListView skin layers (virtual flow/sheet/placeholder/corner). */
+.list-view .virtual-flow,
+.list-view .virtual-flow .clipped-container,
+.list-view .virtual-flow .clipped-container .sheet,
+.list-view .placeholder,
+.list-view .corner {
+    -fx-background-color: transparent;
+}
+
+/* Applies to each visible ListCell container in the ListView. */
 .list-cell {
     -fx-label-padding: 0 0 0 0;
     -fx-graphic-text-gap : 0;
-    -fx-padding: 0 0 0 0;
+    -fx-padding: 4 4 4 4;
 }
 
-.list-cell:filled:even {
-    -fx-background-color: #3c3e3f;
+/* Applies to all filled rows in the ListView (odd/even unified). */
+.list-cell:filled {
+    -fx-background-color: transparent;
 }
 
-.list-cell:filled:odd {
-    -fx-background-color: #515658;
-}
-
+/* Applies to selected rows in the ListView. */
 .list-cell:filled:selected {
-    -fx-background-color: #424d5f;
+    -fx-background-color: transparent;
 }
 
+/* Applies to focused selected rows; keep cell transparent to avoid square background behind rounded cards. */
+.list-cell:filled:focused:selected,
+.list-view:focused .list-cell:filled:selected {
+    -fx-background-color: transparent;
+}
+
+/* Applies to #cardPane when its parent ListCell is selected. */
 .list-cell:filled:selected #cardPane {
-    -fx-border-color: #3e7b91;
+    -fx-background-color: -app-row-selected;
+    -fx-border-color: -app-accent;
     -fx-border-width: 1;
 }
 
+/* Applies to labels rendered inside list cells. */
 .list-cell .label {
-    -fx-text-fill: white;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies to styleClass="cell_big_label" in PersonListCard.fxml (id + name). */
 .cell_big_label {
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 16px;
-    -fx-text-fill: #010504;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies to styleClass="cell_small_label" in PersonListCard.fxml (phone/address/email). */
 .cell_small_label {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
-    -fx-text-fill: #010504;
+    -fx-text-fill: -app-text-secondary;
 }
 
+/* Applies to nodes with styleClass="stack-pane" (e.g. CommandBox wrapper). */
 .stack-pane {
-     -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-background-color: -app-bg;
 }
 
+/* Applies to nodes with styleClass="pane-with-border" (main content panes). */
 .pane-with-border {
-     -fx-background-color: derive(#1d1d1d, 20%);
-     -fx-border-color: derive(#1d1d1d, 10%);
-     -fx-border-top-width: 1px;
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+    -fx-border-top-width: 1px;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
 }
 
-.status-bar {
-    -fx-background-color: derive(#1d1d1d, 30%);
-}
-
-.result-display {
+/* Applies to personListPanelPlaceholder host container; functional only (no visible shell). */
+.person-list-host {
     -fx-background-color: transparent;
-    -fx-font-family: "Segoe UI Light";
-    -fx-font-size: 13pt;
-    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
 }
 
-.result-display .label {
-    -fx-text-fill: black !important;
+/* Applies to styleClass="status-bar" in StatusBarFooter.fxml. */
+.status-bar {
+    -fx-background-color: -app-bg-elevated;
+    -fx-border-color: -app-border-muted;
+    -fx-border-width: 1 0 0 0;
 }
 
+.command-history {
+    -fx-background-color: transparent;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 9pt;
+    -fx-text-fill: -app-text-primary;
+}
+
+.command-history .label {
+    -fx-text-fill: -app-text-primary;
+}
+
+/* Applies to labels inside the status bar. */
 .status-bar .label {
-    -fx-font-family: "Segoe UI Light";
-    -fx-text-fill: white;
-    -fx-padding: 4px;
-    -fx-pref-height: 30px;
+    -fx-font-family: "Segoe UI";
+    -fx-text-fill: -app-text-secondary;
+    -fx-padding: 6px 8px;
+    -fx-pref-height: 32px;
 }
 
+/* Unused currently (no node with styleClass="status-bar-with-border")
 .status-bar-with-border {
     -fx-background-color: derive(#1d1d1d, 30%);
     -fx-border-color: derive(#1d1d1d, 25%);
     -fx-border-width: 1px;
 }
+*/
 
+/* Unused currently (no node with styleClass="status-bar-with-border")
 .status-bar-with-border .label {
     -fx-text-fill: white;
 }
+*/
 
+/* Applies to generic GridPane controls when style class resolves to grid-pane. */
 .grid-pane {
-    -fx-background-color: derive(#1d1d1d, 30%);
-    -fx-border-color: derive(#1d1d1d, 30%);
+    -fx-background-color: -app-bg-elevated;
+    -fx-border-color: -app-border-muted;
     -fx-border-width: 1px;
 }
 
+/* Applies to nested stack-pane within a GridPane skin context. */
 .grid-pane .stack-pane {
-    -fx-background-color: derive(#1d1d1d, 30%);
+    -fx-background-color: -app-bg-elevated;
 }
 
+/* Applies to ContextMenu popup container (right-click menus). */
 .context-menu {
-    -fx-background-color: derive(#1d1d1d, 50%);
+    -fx-background-color: -app-surface-alt;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
 }
 
+/* Applies to labels inside context menu items. */
 .context-menu .label {
-    -fx-text-fill: white;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies to the main MenuBar container. */
 .menu-bar {
-    -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-background-color: -app-bg-elevated;
+    -fx-padding: 2 6;
 }
 
+/* Applies to menu labels inside the MenuBar. */
 .menu-bar .label {
-    -fx-font-size: 14pt;
-    -fx-font-family: "Segoe UI Light";
-    -fx-text-fill: white;
-    -fx-opacity: 0.9;
+    -fx-font-size: 11pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: -app-text-primary;
+    -fx-opacity: 1;
 }
 
+/* Applies to the left icon/container region inside Menu skins. */
 .menu .left-container {
-    -fx-background-color: black;
+    -fx-background-color: -app-surface-alt;
 }
 
 /*
@@ -212,139 +314,205 @@
  * Author: Pedro Duque Vieira
  * http://pixelduke.wordpress.com/2012/10/23/jmetro-windows-8-controls-on-java/
  */
+/* Applies to all Button controls globally. */
 .button {
     -fx-padding: 5 22 5 22;
-    -fx-border-color: #e2e2e2;
+    -fx-border-color: -app-border;
     -fx-border-width: 2;
-    -fx-background-radius: 0;
-    -fx-background-color: #1d1d1d;
+    -fx-background-radius: 8;
+    -fx-background-color: -app-surface-alt;
     -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
     -fx-font-size: 11pt;
-    -fx-text-fill: #d8d8d8;
+    -fx-text-fill: -app-text-primary;
     -fx-background-insets: 0 0 0 0, 0, 1, 2;
 }
 
+/* Applies when a button is hovered. */
 .button:hover {
-    -fx-background-color: #3a3a3a;
+        -fx-background-color: -app-surface-hover;
 }
 
+/* Applies when a button is pressed (including default button pressed hover state). */
 .button:pressed, .button:default:hover:pressed {
-  -fx-background-color: white;
-  -fx-text-fill: #1d1d1d;
+    -fx-background-color: -app-accent;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies when a button has keyboard focus. */
 .button:focused {
-    -fx-border-color: white, white;
+    -fx-border-color: -app-accent, -app-accent;
     -fx-border-width: 1, 1;
     -fx-border-style: solid, segments(1, 1);
     -fx-border-radius: 0, 0;
     -fx-border-insets: 1 1 1 1, 0;
 }
 
+/* Applies when a button is disabled. */
 .button:disabled, .button:default:disabled {
     -fx-opacity: 0.4;
-    -fx-background-color: #1d1d1d;
-    -fx-text-fill: white;
+    -fx-background-color: -app-surface-alt;
+    -fx-text-fill: -app-text-secondary;
 }
 
+/* Applies to the default action button variant. */
 .button:default {
     -fx-background-color: -fx-focus-color;
     -fx-text-fill: #ffffff;
 }
 
+/* Applies to default action button on hover. */
 .button:default:hover {
     -fx-background-color: derive(-fx-focus-color, 30%);
 }
 
+/* Applies to DialogPane root container. */
 .dialog-pane {
-    -fx-background-color: #1d1d1d;
+    -fx-background-color: -app-bg;
 }
 
+/* Applies to container region inside DialogPane button bar. */
 .dialog-pane > *.button-bar > *.container {
-    -fx-background-color: #1d1d1d;
+    -fx-background-color: -app-bg;
 }
 
+/* Applies to content label text in dialog body. */
 .dialog-pane > *.label.content {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies to DialogPane header panel region. */
 .dialog-pane:header *.header-panel {
-    -fx-background-color: derive(#1d1d1d, 25%);
+    -fx-background-color: -app-surface-alt;
 }
 
+/* Applies to labels within the DialogPane header panel. */
 .dialog-pane:header *.header-panel *.label {
     -fx-font-size: 18px;
     -fx-font-style: italic;
-    -fx-fill: white;
-    -fx-text-fill: white;
+    -fx-fill: -app-text-primary;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies to ScrollBar track container. */
 .scroll-bar {
-    -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-background-color: transparent;
 }
 
+.scroll-bar:vertical {
+    -fx-pref-width: 8;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 8;
+}
+
+.scroll-bar .track,
+.scroll-bar .track-background {
+    -fx-background-color: transparent;
+}
+
+/* Applies to ScrollBar thumb/draggable handle. */
 .scroll-bar .thumb {
-    -fx-background-color: derive(#1d1d1d, 50%);
-    -fx-background-insets: 3;
+    -fx-background-color: -app-border;
+    -fx-background-insets: 1;
+    -fx-background-radius: 999;
 }
 
+/* Applies to ScrollBar increment/decrement button areas. */
 .scroll-bar .increment-button, .scroll-bar .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 0 0 0 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
 }
 
+/* Applies to ScrollBar arrow glyph nodes (hidden using empty shape). */
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
     -fx-shape: " ";
 }
 
+/* Applies to vertical ScrollBar arrows (hit area sizing). */
 .scroll-bar:vertical .increment-arrow, .scroll-bar:vertical .decrement-arrow {
-    -fx-padding: 1 8 1 8;
+    -fx-padding: 0;
 }
 
+/* Applies to horizontal ScrollBar arrows (hit area sizing). */
 .scroll-bar:horizontal .increment-arrow, .scroll-bar:horizontal .decrement-arrow {
-    -fx-padding: 8 1 8 1;
+    -fx-padding: 0;
 }
 
+/* Applies to id="cardPane" root in PersonListCard.fxml. */
 #cardPane {
-    -fx-background-color: transparent;
-    -fx-border-width: 0;
+    -fx-background-color: -app-surface-alt;
+    -fx-border-width: 1;
+    -fx-border-color: -app-border;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
 }
 
+/* Unused currently (no node with id="commandTypeLabel")
 #commandTypeLabel {
     -fx-font-size: 11px;
     -fx-text-fill: #F70D1A;
 }
+*/
 
+/* Applies to id="commandTextField" in CommandBox.fxml and PasswordWindow.fxml. */
 #commandTextField {
-    -fx-background-color: transparent #383838 transparent #383838;
+    -fx-background-color: -app-bg-elevated;
     -fx-background-insets: 0;
-    -fx-border-color: #383838 #383838 #ffffff #383838;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-border-insets: 0;
     -fx-border-width: 1;
-    -fx-font-family: "Segoe UI Light";
+    -fx-padding: 10 12;
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 13pt;
-    -fx-text-fill: white;
+    -fx-text-fill: -app-text-primary;
 }
 
+/* Applies when command text field is focused; highlights the command box border. */
+#commandTextField:focused {
+    -fx-border-color: -app-accent;
+    -fx-effect: dropshadow(gaussian, rgba(94, 141, 255, 0.25), 10, 0.15, 0, 0);
+}
+
+/* Unused currently (ids not found in current FXML/Java)
 #filterField, #personListPanel, #personWebpage {
     -fx-effect: innershadow(gaussian, black, 10, 0, 0, 0);
 }
+*/
 
-#resultDisplay .content {
-    -fx-background-color: transparent, #383838, transparent, #383838;
-    -fx-background-radius: 0;
+#commandHistory .content {
+    -fx-background-color: -app-surface-alt;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
 }
 
+/* Applies to result display TextArea and its nested viewport/scroll skin layers. */
+#commandHistory,
+#commandHistory .viewport,
+#commandHistory .scroll-pane,
+#commandHistory .scroll-pane .viewport,
+#commandHistory .scroll-pane .corner {
+    -fx-background-color: -app-surface-alt;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+}
+
+/* Applies to FlowPane id="tags" container in PersonListCard.fxml. */
 #tags {
     -fx-hgap: 7;
     -fx-vgap: 3;
 }
 
+/* Applies to each tag label chip inside #tags FlowPane. */
 #tags .label {
-    -fx-text-fill: white;
-    -fx-background-color: #3e7b91;
+    -fx-text-fill: -app-text-primary;
+    -fx-background-color: -app-tag-bg;
     -fx-padding: 1 3 1 3;
     -fx-border-radius: 2;
     -fx-background-radius: 2;

@@ -2,6 +2,7 @@ package seedu.address.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -66,6 +67,45 @@ public class SecurityManagerTest {
         assertEquals(newValidPassword, logicStub.getAddressBookPassword());
     }
 
+    @Test
+    public void isAuthenticated_invalidInputFromSupplier_returnsFalse() {
+        LogicStub logicStub = new LogicStub();
+        String invalidPassword = "12 3";
+
+        SecurityManager securityManager = new SecurityManager(
+                logicStub, () -> Optional.of(invalidPassword)
+        );
+
+        assertFalse(securityManager.isAuthenticated());
+        assertEquals("", logicStub.getAddressBookPassword());
+    }
+
+    @Test
+    public void isAuthenticated_saveFails_returnsTrueButLogsError() {
+        LogicStub logicStubWithFault = new LogicStub() {
+            @Override
+            public void saveAddressBook() throws java.io.IOException {
+                throw new java.io.IOException("Simulated write failure");
+            }
+        };
+
+        String rawPassword = "validPassword123";
+        SecurityManager securityManager = new SecurityManager(
+                logicStubWithFault, () -> Optional.of(rawPassword)
+        );
+
+        assertTrue(securityManager.isAuthenticated());
+        assertEquals(rawPassword, logicStubWithFault.getAddressBookPassword());
+    }
+
+    @Test
+    public void constructor_default_initializesCorrectly() {
+        LogicStub logicStub = new LogicStub();
+        SecurityManager securityManager = new SecurityManager(logicStub);
+
+        assertNotNull(securityManager);
+    }
+
     /**
      * A stub Logic where all methods fail except those needed for SecurityManager.
      */
@@ -83,7 +123,7 @@ public class SecurityManagerTest {
         }
 
         @Override
-        public void saveAddressBook() {
+        public void saveAddressBook() throws java.io.IOException {
             // No-op: We don't need to actually write to disk for this unit test
         }
 

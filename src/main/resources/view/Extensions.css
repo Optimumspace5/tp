@@ -5,16 +5,20 @@
 
 .list-cell:empty {
     /* Empty cells will not have alternating colours */
-    -fx-background: #383838;
+    -fx-background-color: transparent;
 }
 
+/* Unused currently (class "tag-selector" not referenced in current FXML/Java)
 .tag-selector {
     -fx-border-width: 1;
     -fx-border-color: white;
     -fx-border-radius: 3;
     -fx-background-radius: 3;
 }
+*/
 
+/* Unused currently (class "tooltip-text" not referenced in current FXML/Java)
 .tooltip-text {
     -fx-text-fill: white;
 }
+*/

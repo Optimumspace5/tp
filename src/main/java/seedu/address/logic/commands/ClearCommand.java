@@ -13,9 +13,10 @@ public class ClearCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Current contact list has been cleared!";
 
     @Override
-    public CommandResult execute(Model model) {
-        requireNonNull(model);
-        model.clearPersons();
+    public CommandResult execute(CommandContext context) {
+        requireNonNull(context);
+        Model model = context.getModel();
+        model.setAddressBook(new AddressBook());
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }

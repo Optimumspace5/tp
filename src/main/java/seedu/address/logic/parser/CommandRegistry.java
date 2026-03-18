@@ -26,34 +26,47 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class CommandRegistry {
 
     /**
-     * Factory for creating a command object.
+     * Functional interface for creating a command object from raw arguments.
      */
     @FunctionalInterface
     private interface CommandFactory {
         /**
          * Creates a command object from the given arguments.
          *
-         * @param arguments the command arguments
-         * @return the created command
-         * @throws ParseException if the arguments are invalid
+         * @param arguments The raw command arguments entered by the user.
+         * @return The created command.
+         * @throws ParseException If the arguments are invalid for the specific command.
          */
         Command create(String arguments) throws ParseException;
     }
 
     /**
-     * Stores a command's factory and mode availability flags.
+     * Encapsulates a command's factory and its permission flags for different application modes.
      */
     private static class CommandRegistration {
         private final CommandFactory factory;
         private final boolean allowedInLocked;
         private final boolean allowedInUnlocked;
 
+        /**
+         * Constructs a registration entry for a command.
+         *
+         * @param factory The factory used to instantiate the command.
+         * @param allowedInLocked Whether the command is permitted in {@code AppMode.LOCKED}.
+         * @param allowedInUnlocked Whether the command is permitted in {@code AppMode.UNLOCKED}.
+         */
         private CommandRegistration(CommandFactory factory, boolean allowedInLocked, boolean allowedInUnlocked) {
             this.factory = factory;
             this.allowedInLocked = allowedInLocked;
             this.allowedInUnlocked = allowedInUnlocked;
         }
 
+        /**
+         * Checks if the command is permitted in the specified application mode.
+         *
+         * @param mode The current application mode to check against.
+         * @return True if the command is allowed, false otherwise.
+         */
         private boolean isAllowed(AppMode mode) {
             return mode == AppMode.LOCKED ? allowedInLocked : allowedInUnlocked;
         }
@@ -62,55 +75,39 @@ public class CommandRegistry {
     private final Map<String, CommandRegistration> registrations = new HashMap<>();
 
     /**
-     * Constructs a CommandRegistry and registers all available commands.
+     * Initializes the {@code CommandRegistry} and registers all available system commands
+     * with their respective authorization settings.
      */
     public CommandRegistry() {
-        // Core CRUD and query commands.
-        register(AddCommand.COMMAND_WORD,
-                arguments -> new AddCommandParser().parse(arguments),
-                true, true);
-        register(EditCommand.COMMAND_WORD,
-                arguments -> new EditCommandParser().parse(arguments),
-                true, true);
-        register(DeleteCommand.COMMAND_WORD,
-                arguments -> new DeleteCommandParser().parse(arguments),
-                true, true);
-        register(ClearCommand.COMMAND_WORD,
-                arguments -> new ClearCommand(),
-                true, true);
-        register(FindCommand.COMMAND_WORD,
-                arguments -> new FindCommandParser().parse(arguments),
-                true, true);
-        register(ListCommand.COMMAND_WORD,
-                arguments -> new ListCommand(),
-                true, true);
+        // CRUD Commands
+        register(AddCommand.COMMAND_WORD, args -> new AddCommandParser().parse(args), true, true);
+        register(EditCommand.COMMAND_WORD, args -> new EditCommandParser().parse(args), true, true);
+        register(DeleteCommand.COMMAND_WORD, args -> new DeleteCommandParser().parse(args), true, true);
+        register(ClearCommand.COMMAND_WORD, args -> new ClearCommand(), true, true);
 
-        // Utility commands.
-        register(ExitCommand.COMMAND_WORD,
-                arguments -> new ExitCommand(),
-                true, true);
-        register(HelpCommand.COMMAND_WORD,
-                arguments -> new HelpCommand(),
-                true, true);
+        // Query Commands
+        register(FindCommand.COMMAND_WORD, args -> new FindCommandParser().parse(args), true, true);
+        register(ListCommand.COMMAND_WORD, args -> new ListCommand(), true, true);
 
-        // Mode transition commands.
-        register(LockCommand.COMMAND_WORD,
-                arguments -> new LockCommand(),
-                false, true);
-        register(UnlockCommand.COMMAND_WORD,
-                arguments -> new UnlockCommand(),
-                true, true);
+        // Utility Commands
+        register(ExitCommand.COMMAND_WORD, args -> new ExitCommand(), true, true);
+        register(HelpCommand.COMMAND_WORD, args -> new HelpCommand(), true, true);
+
+        // Mode Transition Commands
+        register(LockCommand.COMMAND_WORD, args -> new LockCommand(), false, true);
+        register(UnlockCommand.COMMAND_WORD, args -> new UnlockCommandParser().parse(args), true, true);
     }
 
     /**
-     * Parses a command word and arguments into a Command, checking authorization for the given mode.
+     * Parses a command word and arguments into a {@code Command} object, checking
+     * authorization against the provided {@code AppMode}.
      *
-     * @param commandWord the command word entered by the user
-     * @param arguments the arguments string entered by the user
-     * @param mode the current application mode
-     * @return the command specified by the user
-     * @throws ParseException if the command is unknown, disallowed in the current mode,
-     *         or if the command parser rejects the arguments
+     * @param commandWord The command word entered by the user.
+     * @param arguments The arguments string entered by the user.
+     * @param mode The current application mode.
+     * @return The instantiated command if authorized and valid.
+     * @throws ParseException If the command is unknown, disallowed in the current mode,
+     *                        or if the parser rejects the arguments.
      */
     public Command parse(String commandWord, String arguments, AppMode mode) throws ParseException {
         requireNonNull(commandWord);
@@ -118,24 +115,26 @@ public class CommandRegistry {
         requireNonNull(mode);
 
         CommandRegistration registration = registrations.get(commandWord);
+
+        // If the command is not registered or not allowed in the current mode,
+        // we throw a generic unknown command error.
         if (registration == null || !registration.isAllowed(mode)) {
             throw new ParseException(MESSAGE_UNKNOWN_COMMAND);
         }
 
-        // Delegate to the registered factory to create the command object.
         return registration.factory.create(arguments);
     }
 
     /**
-     * Registers a command in the registry.
+     * Internally registers a command in the registry.
      *
-     * @param commandWord the command word
-     * @param factory the factory that creates the command
-     * @param allowedInLocked whether the command is allowed in locked mode
-     * @param allowedInUnlocked whether the command is allowed in unlocked mode
+     * @param commandWord The command word that triggers this command.
+     * @param factory The factory logic to create the command.
+     * @param allowedInLocked Whether the command can be used while the app is locked.
+     * @param allowedInUnlocked Whether the command can be used while the app is unlocked.
      */
     private void register(String commandWord, CommandFactory factory,
-            boolean allowedInLocked, boolean allowedInUnlocked) {
+                          boolean allowedInLocked, boolean allowedInUnlocked) {
         registrations.put(commandWord, new CommandRegistration(factory, allowedInLocked, allowedInUnlocked));
     }
 }

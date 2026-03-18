@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.CommandContext;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -50,20 +51,16 @@ public class LogicManager implements Logic {
         this.storage = storage;
         this.modeManager = modeManager;
         this.addressBookParser = new AddressBookParser(modeManager::getMode);
-        syncModelToCurrentMode();
     }
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
-        commandResult = command.execute(model);
-        commandResult.getRequestedMode().ifPresent(mode -> {
-            modeManager.transitionTo(mode);
-            syncModelToCurrentMode();
-        });
+        CommandContext context = new CommandContext(model, modeManager.getMode());
+        CommandResult commandResult = command.execute(context);
+        commandResult.getRequestedMode().ifPresent(modeManager::transitionTo);
 
         try {
             storage.saveAddressBook(model.getAddressBook());
@@ -119,13 +116,5 @@ public class LogicManager implements Logic {
     @Override
     public AppMode getCurrentMode() {
         return modeManager.getMode();
-    }
-
-    private void syncModelToCurrentMode() {
-        if (getCurrentMode() == AppMode.LOCKED) {
-            model.useLockedPersonList();
-        } else {
-            model.useUnlockedPersonList();
-        }
     }
 }

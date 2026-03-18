@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.AppMode;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -70,14 +71,25 @@ public class CommandTestUtil {
     }
 
     /**
-     * Executes the given {@code command}, confirms that <br>
+     * Executes the given {@code command} in {@code AppMode.UNLOCKED}, confirms that <br>
      * - the returned {@link CommandResult} matches {@code expectedCommandResult} <br>
      * - the {@code actualModel} matches {@code expectedModel}
      */
     public static void assertCommandSuccess(Command command, Model actualModel, CommandResult expectedCommandResult,
-            Model expectedModel) {
+                                            Model expectedModel) {
+        assertCommandSuccess(command, actualModel, AppMode.UNLOCKED, expectedCommandResult, expectedModel);
+    }
+
+    /**
+     * Overloaded version of {@code assertCommandSuccess} that allows specifying the {@code AppMode}.
+     */
+    public static void assertCommandSuccess(Command command, Model actualModel, AppMode mode,
+                                            CommandResult expectedCommandResult, Model expectedModel) {
         try {
-            CommandResult result = command.execute(actualModel);
+            // Wrap the model and mode into the new CommandContext
+            CommandContext context = new CommandContext(actualModel, mode);
+            CommandResult result = command.execute(context);
+
             assertEquals(expectedCommandResult, result);
             assertEquals(expectedModel, actualModel);
         } catch (CommandException ce) {
@@ -90,27 +102,37 @@ public class CommandTestUtil {
      * that takes a string {@code expectedMessage}.
      */
     public static void assertCommandSuccess(Command command, Model actualModel, String expectedMessage,
-            Model expectedModel) {
+                                            Model expectedModel) {
         CommandResult expectedCommandResult = new CommandResult(expectedMessage);
         assertCommandSuccess(command, actualModel, expectedCommandResult, expectedModel);
     }
 
     /**
-     * Executes the given {@code command}, confirms that <br>
+     * Executes the given {@code command} in {@code AppMode.UNLOCKED}, confirms that <br>
      * - a {@code CommandException} is thrown <br>
      * - the CommandException message matches {@code expectedMessage} <br>
-     * - the address book, filtered person list and selected person in {@code actualModel} remain unchanged
+     * - the actualModel remain unchanged
      */
     public static void assertCommandFailure(Command command, Model actualModel, String expectedMessage) {
+        assertCommandFailure(command, actualModel, AppMode.UNLOCKED, expectedMessage);
+    }
+
+    /**
+     * Overloaded version of {@code assertCommandFailure} that allows specifying the {@code AppMode}.
+     */
+    public static void assertCommandFailure(Command command, Model actualModel, AppMode mode, String expectedMessage) {
         // we are unable to defensively copy the model for comparison later, so we can
         // only do so by copying its components.
         AddressBook expectedAddressBook = new AddressBook(actualModel.getAddressBook());
         List<Person> expectedFilteredList = new ArrayList<>(actualModel.getFilteredPersonList());
 
-        assertThrows(CommandException.class, expectedMessage, () -> command.execute(actualModel));
+        CommandContext context = new CommandContext(actualModel, mode);
+        assertThrows(CommandException.class, expectedMessage, () -> command.execute(context));
+
         assertEquals(expectedAddressBook, actualModel.getAddressBook());
         assertEquals(expectedFilteredList, actualModel.getFilteredPersonList());
     }
+
     /**
      * Updates {@code model}'s filtered list to show only the person at the given {@code targetIndex} in the
      * {@code model}'s address book.

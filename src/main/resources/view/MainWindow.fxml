@@ -24,22 +24,13 @@
       </stylesheets>
 
       <VBox>
-        <MenuBar fx:id="menuBar" VBox.vgrow="NEVER">
-          <Menu mnemonicParsing="false" text="File">
-            <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
-          </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
-          </Menu>
-        </MenuBar>
-
         <HBox VBox.vgrow="ALWAYS">
           <VBox fx:id="leftPanel" styleClass="background" spacing="10" minWidth="420" prefWidth="450" HBox.hgrow="NEVER">
             <padding>
               <Insets top="10" right="10" bottom="10" left="10" />
             </padding>
 
-            <StackPane fx:id="resultDisplayPlaceholder"
+            <StackPane fx:id="commandHistoryPlaceholder"
                        VBox.vgrow="ALWAYS"
                        styleClass="pane-with-border"
                        minHeight="250"
@@ -59,13 +50,16 @@
 
             <StackPane fx:id="personListPanelPlaceholder"
                        VBox.vgrow="ALWAYS"
-                       styleClass="pane-with-border" />
+                       styleClass="person-list-host" />
           </VBox>
         </HBox>
 
-        <StackPane fx:id="commandBoxPlaceholder" VBox.vgrow="NEVER" styleClass="pane-with-border">
+        <StackPane fx:id="commandBoxPlaceholder" VBox.vgrow="NEVER">
+          <VBox.margin>
+            <Insets top="0" right="10" bottom="10" left="10" />
+          </VBox.margin>
           <padding>
-            <Insets top="8" right="10" bottom="8" left="10" />
+            <Insets top="0" right="0" bottom="0" left="0" />
           </padding>
         </StackPane>
       </VBox>

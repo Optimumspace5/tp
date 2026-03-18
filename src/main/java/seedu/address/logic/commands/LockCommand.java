@@ -1,10 +1,12 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
+
 import seedu.address.logic.AppMode;
-import seedu.address.model.Model;
 
 /**
- * Switches the app to the Locked interface.
+ * Switches the application to the Locked interface.
+ * This command triggers a state transition to {@code AppMode.LOCKED}.
  */
 public class LockCommand extends Command {
 
@@ -12,7 +14,10 @@ public class LockCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Switched to Locked Interface.";
 
     @Override
-    public CommandResult execute(Model model) {
+    public CommandResult execute(CommandContext context) {
+        requireNonNull(context);
+
+        // Transition to LOCKED mode.
         return new CommandResult(MESSAGE_SUCCESS, false, false, AppMode.LOCKED);
     }
 }
