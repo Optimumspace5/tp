@@ -237,11 +237,11 @@
     -fx-background-color: transparent;
     -fx-font-family: "Segoe UI Light";
     -fx-font-size: 9pt;
-    -fx-text-fill: white;
+    -fx-text-fill: -app-text-primary;
 }
 
 .command-history .label {
-    -fx-text-fill: black !important;
+    -fx-text-fill: -app-text-primary;
 }
 
 /* Applies to labels inside the status bar. */
@@ -487,16 +487,17 @@
 */
 
 #commandHistory .content {
-    -fx-background-color: transparent, #383838, transparent, #383838;
-    -fx-background-radius: 0;
+    -fx-background-color: -app-surface-alt;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
 }
 
 /* Applies to result display TextArea and its nested viewport/scroll skin layers. */
-#resultDisplay,
-#resultDisplay .viewport,
-#resultDisplay .scroll-pane,
-#resultDisplay .scroll-pane .viewport,
-#resultDisplay .scroll-pane .corner {
+#commandHistory,
+#commandHistory .viewport,
+#commandHistory .scroll-pane,
+#commandHistory .scroll-pane .viewport,
+#commandHistory .scroll-pane .corner {
     -fx-background-color: -app-surface-alt;
     -fx-background-insets: 0;
     -fx-background-radius: 8;
