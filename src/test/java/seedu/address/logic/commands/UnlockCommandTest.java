@@ -29,29 +29,37 @@ public class UnlockCommandTest {
 
     @Test
     public void execute_alreadyUnlocked_throwsCommandException() {
-        // We pass AppMode.UNLOCKED directly to the command to simulate Logic's state
-        UnlockCommand unlockCommand = new UnlockCommand(VALID_PASSWORD, AppMode.UNLOCKED);
+        UnlockCommand unlockCommand = new UnlockCommand(VALID_PASSWORD);
         ModelStub modelStub = new ModelStubWithPassword(VALID_PASSWORD);
 
+        // Context simulates the "Unlocked" state
+        CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
+
         assertThrows(CommandException.class,
-                UnlockCommand.MESSAGE_ALREADY_UNLOCKED, () -> unlockCommand.execute(modelStub));
+                UnlockCommand.MESSAGE_ALREADY_UNLOCKED, () -> unlockCommand.execute(context));
     }
 
     @Test
     public void execute_wrongPasswordLockedMode_throwsDiscreetException() {
-        UnlockCommand unlockCommand = new UnlockCommand(WRONG_PASSWORD, AppMode.LOCKED);
+        UnlockCommand unlockCommand = new UnlockCommand(WRONG_PASSWORD);
         ModelStub modelStub = new ModelStubWithPassword(VALID_PASSWORD);
 
+        // Context simulates the "Locked" state
+        CommandContext context = new CommandContext(modelStub, AppMode.LOCKED);
+
         assertThrows(CommandException.class,
-                MESSAGE_UNKNOWN_COMMAND, () -> unlockCommand.execute(modelStub));
+                MESSAGE_UNKNOWN_COMMAND, () -> unlockCommand.execute(context));
     }
 
     @Test
     public void execute_correctPasswordLockedMode_unlockSuccessful() throws Exception {
-        UnlockCommand unlockCommand = new UnlockCommand(VALID_PASSWORD, AppMode.LOCKED);
+        UnlockCommand unlockCommand = new UnlockCommand(VALID_PASSWORD);
         ModelStub modelStub = new ModelStubWithPassword(VALID_PASSWORD);
 
-        CommandResult result = unlockCommand.execute(modelStub);
+        // Context simulates the "Locked" state
+        CommandContext context = new CommandContext(modelStub, AppMode.LOCKED);
+
+        CommandResult result = unlockCommand.execute(context);
 
         assertEquals(UnlockCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
         assertEquals(Optional.of(AppMode.UNLOCKED), result.getRequestedMode());

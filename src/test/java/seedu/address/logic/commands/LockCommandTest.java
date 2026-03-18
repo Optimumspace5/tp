@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -26,13 +27,20 @@ public class LockCommandTest {
         ModelStub modelStub = new ModelStub();
         LockCommand lockCommand = new LockCommand();
 
-        CommandResult result = lockCommand.execute(modelStub);
+        CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
+        CommandResult result = lockCommand.execute(context);
 
         // Verify feedback message matches
         assertEquals(LockCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
 
-        // Verify requested mode is Optional.of(AppMode.LOCKED)
+        // Verify requested mode transition is AppMode.LOCKED
         assertEquals(Optional.of(AppMode.LOCKED), result.getRequestedMode());
+    }
+
+    @Test
+    public void execute_nullContext_throwsNullPointerException() {
+        LockCommand lockCommand = new LockCommand();
+        assertThrows(NullPointerException.class, () -> lockCommand.execute(null));
     }
 
     /**

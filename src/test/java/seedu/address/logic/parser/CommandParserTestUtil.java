@@ -2,7 +2,6 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import seedu.address.logic.AppMode;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -19,19 +18,6 @@ public class CommandParserTestUtil {
                                           Command expectedCommand) {
         try {
             Command command = parser.parse(userInput);
-            assertEquals(expectedCommand, command);
-        } catch (ParseException pe) {
-            throw new IllegalArgumentException("Invalid userInput.", pe);
-        }
-    }
-
-    /**
-     * Overloaded helper for parsers that require AppMode context (like UnlockCommandParser).
-     */
-    public static void assertParseSuccess(UnlockCommandParser parser, String userInput,
-                                          AppMode mode, Command expectedCommand) {
-        try {
-            Command command = parser.parse(userInput, mode);
             assertEquals(expectedCommand, command);
         } catch (ParseException pe) {
             throw new IllegalArgumentException("Invalid userInput.", pe);

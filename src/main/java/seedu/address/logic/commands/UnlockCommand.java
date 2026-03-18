@@ -47,4 +47,23 @@ public class UnlockCommand extends Command {
 
         return new CommandResult(MESSAGE_SUCCESS, false, false, AppMode.UNLOCKED);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        if (!(other instanceof UnlockCommand)) {
+            return false;
+        }
+
+        UnlockCommand otherUnlockCommand = (UnlockCommand) other;
+        return providedPassword.equals(otherUnlockCommand.providedPassword);
+    }
+
+    @Override
+    public int hashCode() {
+        return providedPassword.hashCode();
+    }
 }
