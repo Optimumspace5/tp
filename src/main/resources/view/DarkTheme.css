@@ -1,32 +1,39 @@
+.root {
+    -fx-accent: #5e8dff;
+    -fx-focus-color: #5e8dff;
+    -fx-faint-focus-color: rgba(94, 141, 255, 0.18);
+    -fx-background-color: #111827;
+}
+
 .background {
-    -fx-background-color: derive(#1d1d1d, 20%);
-    background-color: #383838; /* Used in the default.html file */
+    -fx-background-color: #111827;
+    background-color: #111827; /* Used in the default.html file */
 }
 
 .label {
     -fx-font-size: 11pt;
-    -fx-font-family: "Segoe UI Semibold";
-    -fx-text-fill: #555555;
-    -fx-opacity: 0.9;
+    -fx-font-family: "Segoe UI";
+    -fx-text-fill: #94a3b8;
+    -fx-opacity: 1;
 }
 
 .label-bright {
     -fx-font-size: 11pt;
     -fx-font-family: "Segoe UI Semibold";
-    -fx-text-fill: white;
+    -fx-text-fill: #e2e8f0;
     -fx-opacity: 1;
 }
 
 .label-header {
-    -fx-font-size: 32pt;
-    -fx-font-family: "Segoe UI Light";
-    -fx-text-fill: white;
+    -fx-font-size: 28pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: #f8fafc;
     -fx-opacity: 1;
 }
 
 .text-field {
-    -fx-font-size: 12pt;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11.5pt;
+    -fx-font-family: "Segoe UI";
 }
 
 /* Unused currently (no TabPane in current FXML/Java)
@@ -151,35 +158,39 @@
 }
 
 .stack-pane {
-     -fx-background-color: derive(#1d1d1d, 20%);
+     -fx-background-color: #111827;
 }
 
 .pane-with-border {
-     -fx-background-color: derive(#1d1d1d, 20%);
-     -fx-border-color: derive(#1d1d1d, 10%);
+     -fx-background-color: #1b2535;
+     -fx-border-color: #334155;
      -fx-border-top-width: 1px;
+     -fx-background-radius: 12;
+     -fx-border-radius: 12;
 }
 
 .status-bar {
-    -fx-background-color: derive(#1d1d1d, 30%);
+    -fx-background-color: #0f172a;
+    -fx-border-color: #273449;
+    -fx-border-width: 1 0 0 0;
 }
 
 .result-display {
     -fx-background-color: transparent;
-    -fx-font-family: "Segoe UI Light";
-    -fx-font-size: 13pt;
-    -fx-text-fill: white;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 12.5pt;
+    -fx-text-fill: #e2e8f0;
 }
 
 .result-display .label {
-    -fx-text-fill: black !important;
+    -fx-text-fill: #e2e8f0;
 }
 
 .status-bar .label {
-    -fx-font-family: "Segoe UI Light";
-    -fx-text-fill: white;
-    -fx-padding: 4px;
-    -fx-pref-height: 30px;
+    -fx-font-family: "Segoe UI";
+    -fx-text-fill: #cbd5e1;
+    -fx-padding: 6px 8px;
+    -fx-pref-height: 32px;
 }
 
 /* Unused currently (no node with styleClass="status-bar-with-border")
@@ -207,26 +218,29 @@
 }
 
 .context-menu {
-    -fx-background-color: derive(#1d1d1d, 50%);
+    -fx-background-color: #1f2937;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
 }
 
 .context-menu .label {
-    -fx-text-fill: white;
+    -fx-text-fill: #f8fafc;
 }
 
 .menu-bar {
-    -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-background-color: #0f172a;
+    -fx-padding: 2 6;
 }
 
 .menu-bar .label {
-    -fx-font-size: 14pt;
-    -fx-font-family: "Segoe UI Light";
-    -fx-text-fill: white;
-    -fx-opacity: 0.9;
+    -fx-font-size: 11pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: #e2e8f0;
+    -fx-opacity: 1;
 }
 
 .menu .left-container {
-    -fx-background-color: black;
+    -fx-background-color: #1f2937;
 }
 
 /*
