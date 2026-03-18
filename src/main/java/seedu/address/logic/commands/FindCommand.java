@@ -28,7 +28,6 @@ public class FindCommand extends Command {
      * @param predicate The condition used to filter the person list. Must not be null.
      */
     public FindCommand(NameContainsKeywordsPredicate predicate) {
-        requireNonNull(predicate);
         this.predicate = predicate;
     }
 

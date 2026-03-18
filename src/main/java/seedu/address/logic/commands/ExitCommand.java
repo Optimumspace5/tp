@@ -1,7 +1,5 @@
 package seedu.address.logic.commands;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * Terminates the program.
  */
@@ -13,7 +11,6 @@ public class ExitCommand extends Command {
 
     @Override
     public CommandResult execute(CommandContext context) {
-        requireNonNull(context);
         return new CommandResult(MESSAGE_EXIT_ACKNOWLEDGEMENT, false, true);
     }
 }

@@ -1,7 +1,5 @@
 package seedu.address.logic.commands;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * Formats full help instructions for every command for display.
  */
@@ -16,7 +14,6 @@ public class HelpCommand extends Command {
 
     @Override
     public CommandResult execute(CommandContext context) {
-        requireNonNull(context);
         return new CommandResult(SHOWING_HELP_MESSAGE, true, false);
     }
 }
