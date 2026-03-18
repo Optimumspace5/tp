@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.AppMode;
 import seedu.address.model.person.Person;
 
 /**
@@ -21,8 +22,8 @@ public class ModelManager implements Model {
 
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
-    private FilteredList<Person> filteredPersons;
-    private boolean usingLockedPersonList;
+    private final FilteredList<Person> filteredLockedPersons;
+    private final FilteredList<Person> filteredUnlockedPersons;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -34,8 +35,8 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        this.usingLockedPersonList = true;
-        this.filteredPersons = new FilteredList<>(getActivePersonSourceList());
+        this.filteredLockedPersons = new FilteredList<>(this.addressBook.getLockedPersonList());
+        this.filteredUnlockedPersons = new FilteredList<>(this.addressBook.getUnlockedPersonList());
     }
 
     public ModelManager() {
@@ -82,7 +83,6 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
-        refreshFilteredPersonList();
     }
 
     @Override
@@ -101,30 +101,18 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void useLockedPersonList() {
-        usingLockedPersonList = true;
-        refreshFilteredPersonList();
-    }
-
-    @Override
-    public void useUnlockedPersonList() {
-        usingLockedPersonList = false;
-        refreshFilteredPersonList();
-    }
-
-    @Override
-    public boolean hasPerson(Person person) {
-        requireNonNull(person);
-        return usingLockedPersonList
+    public boolean hasPerson(Person person, AppMode appMode) {
+        requireAllNonNull(person, appMode);
+        return isLockedMode(appMode)
                 ? addressBook.hasLockedPerson(person)
                 : addressBook.hasUnlockedPerson(person);
     }
 
     @Override
-    public void deletePerson(Person target) {
-        requireNonNull(target);
+    public void deletePerson(Person target, AppMode appMode) {
+        requireAllNonNull(target, appMode);
 
-        if (usingLockedPersonList) {
+        if (isLockedMode(appMode)) {
             addressBook.removeLockedPerson(target);
         } else {
             addressBook.removeUnlockedPerson(target);
@@ -132,32 +120,34 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void clearPersons() {
-        if (usingLockedPersonList) {
+    public void clearPersons(AppMode appMode) {
+        requireNonNull(appMode);
+
+        if (isLockedMode(appMode)) {
             addressBook.clearLockedPersons();
         } else {
             addressBook.clearUnlockedPersons();
         }
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
     }
 
     @Override
-    public void addPerson(Person person) {
-        requireNonNull(person);
+    public void addPerson(Person person, AppMode appMode) {
+        requireAllNonNull(person, appMode);
 
-        if (usingLockedPersonList) {
+        if (isLockedMode(appMode)) {
             addressBook.addLockedPerson(person);
         } else {
             addressBook.addUnlockedPerson(person);
         }
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
     }
 
     @Override
-    public void setPerson(Person target, Person editedPerson) {
-        requireAllNonNull(target, editedPerson);
+    public void setPerson(Person target, Person editedPerson, AppMode appMode) {
+        requireAllNonNull(target, editedPerson, appMode);
 
-        if (usingLockedPersonList) {
+        if (isLockedMode(appMode)) {
             addressBook.setLockedPerson(target, editedPerson);
         } else {
             addressBook.setUnlockedPerson(target, editedPerson);
@@ -179,33 +169,24 @@ public class ModelManager implements Model {
 
     //=========== Filtered Person List Accessors =============================================================
 
-    /**
-     * Returns an unmodifiable view of the list of {@code Person} backed by the
-     * currently active contact list.
-     */
     @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
+    public ObservableList<Person> getFilteredPersonList(AppMode appMode) {
+        requireNonNull(appMode);
+        return getFilteredList(appMode);
     }
 
     @Override
-    public void updateFilteredPersonList(Predicate<Person> predicate) {
-        requireNonNull(predicate);
-        filteredPersons.setPredicate(predicate);
+    public void updateFilteredPersonList(Predicate<Person> predicate, AppMode appMode) {
+        requireAllNonNull(predicate, appMode);
+        getFilteredList(appMode).setPredicate(predicate);
     }
 
-    private ObservableList<Person> getActivePersonSourceList() {
-        return usingLockedPersonList
-                ? addressBook.getLockedPersonList()
-                : addressBook.getUnlockedPersonList();
+    private boolean isLockedMode(AppMode appMode) {
+        return appMode == AppMode.LOCKED;
     }
 
-    private void refreshFilteredPersonList() {
-        Predicate<? super Person> currentPredicate = filteredPersons != null
-                ? filteredPersons.getPredicate()
-                : PREDICATE_SHOW_ALL_PERSONS;
-        filteredPersons = new FilteredList<>(getActivePersonSourceList());
-        filteredPersons.setPredicate(currentPredicate != null ? currentPredicate : PREDICATE_SHOW_ALL_PERSONS);
+    private FilteredList<Person> getFilteredList(AppMode appMode) {
+        return isLockedMode(appMode) ? filteredLockedPersons : filteredUnlockedPersons;
     }
 
     @Override
@@ -214,7 +195,6 @@ public class ModelManager implements Model {
             return true;
         }
 
-        // instanceof handles nulls
         if (!(other instanceof ModelManager)) {
             return false;
         }
@@ -222,7 +202,7 @@ public class ModelManager implements Model {
         ModelManager otherModelManager = (ModelManager) other;
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons)
-                && usingLockedPersonList == otherModelManager.usingLockedPersonList;
+                && filteredLockedPersons.equals(otherModelManager.filteredLockedPersons)
+                && filteredUnlockedPersons.equals(otherModelManager.filteredUnlockedPersons);
     }
 }

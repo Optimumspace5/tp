@@ -16,7 +16,7 @@ public class ClearCommand extends Command {
     public CommandResult execute(CommandContext context) {
         requireNonNull(context);
         Model model = context.getModel();
-        model.setAddressBook(new AddressBook());
+        model.clearPersons(context.getAppMode());
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }

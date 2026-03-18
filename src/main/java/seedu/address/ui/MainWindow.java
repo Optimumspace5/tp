@@ -135,7 +135,7 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void refreshPersonListPanel() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList());
+        personListPanel = new PersonListPanel(logic.getFilteredPersonList(currentMode));
         personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
     }
 

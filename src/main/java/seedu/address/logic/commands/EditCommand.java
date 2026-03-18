@@ -71,7 +71,7 @@ public class EditCommand extends Command {
     public CommandResult execute(CommandContext context) throws CommandException {
         requireNonNull(context);
         Model model = context.getModel();
-        List<Person> lastShownList = model.getFilteredPersonList();
+        List<Person> lastShownList = model.getFilteredPersonList(context.getAppMode());
 
         if (index.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
@@ -80,12 +80,13 @@ public class EditCommand extends Command {
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
+        if (!personToEdit.isSamePerson(editedPerson)
+                && model.hasPerson(editedPerson, context.getAppMode())) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.setPerson(personToEdit, editedPerson);
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        model.setPerson(personToEdit, editedPerson, context.getAppMode());
+        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, context.getAppMode());
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 

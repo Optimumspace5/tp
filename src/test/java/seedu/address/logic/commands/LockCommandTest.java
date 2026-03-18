@@ -30,10 +30,7 @@ public class LockCommandTest {
         CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
         CommandResult result = lockCommand.execute(context);
 
-        // Verify feedback message matches
         assertEquals(LockCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
-
-        // Verify requested mode transition is AppMode.LOCKED
         assertEquals(Optional.of(AppMode.LOCKED), result.getRequestedMode());
     }
 
@@ -79,7 +76,12 @@ public class LockCommandTest {
         }
 
         @Override
-        public void addPerson(Person person) {
+        public ObservableList<Person> getLockedPersonList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Person> getUnlockedPersonList() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -94,22 +96,32 @@ public class LockCommandTest {
         }
 
         @Override
-        public boolean hasPerson(Person person) {
+        public boolean hasPerson(Person person, AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public void deletePerson(Person target) {
+        public void deletePerson(Person target, AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public void setPerson(Person target, Person editedPerson) {
+        public void clearPersons(AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public ObservableList<Person> getFilteredPersonList() {
+        public void addPerson(Person person, AppMode appMode) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setPerson(Person target, Person editedPerson, AppMode appMode) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Person> getFilteredPersonList(AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -124,7 +136,7 @@ public class LockCommandTest {
         }
 
         @Override
-        public void updateFilteredPersonList(Predicate<Person> predicate) {
+        public void updateFilteredPersonList(Predicate<Person> predicate, AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
     }

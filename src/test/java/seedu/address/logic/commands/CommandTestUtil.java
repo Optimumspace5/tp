@@ -71,13 +71,13 @@ public class CommandTestUtil {
     }
 
     /**
-     * Executes the given {@code command} in {@code AppMode.UNLOCKED}, confirms that <br>
+     * Executes the given {@code command} in {@code AppMode.LOCKED}, confirms that <br>
      * - the returned {@link CommandResult} matches {@code expectedCommandResult} <br>
      * - the {@code actualModel} matches {@code expectedModel}
      */
     public static void assertCommandSuccess(Command command, Model actualModel, CommandResult expectedCommandResult,
                                             Model expectedModel) {
-        assertCommandSuccess(command, actualModel, AppMode.UNLOCKED, expectedCommandResult, expectedModel);
+        assertCommandSuccess(command, actualModel, AppMode.LOCKED, expectedCommandResult, expectedModel);
     }
 
     /**
@@ -86,7 +86,6 @@ public class CommandTestUtil {
     public static void assertCommandSuccess(Command command, Model actualModel, AppMode mode,
                                             CommandResult expectedCommandResult, Model expectedModel) {
         try {
-            // Wrap the model and mode into the new CommandContext
             CommandContext context = new CommandContext(actualModel, mode);
             CommandResult result = command.execute(context);
 
@@ -108,43 +107,42 @@ public class CommandTestUtil {
     }
 
     /**
-     * Executes the given {@code command} in {@code AppMode.UNLOCKED}, confirms that <br>
+     * Executes the given {@code command} in {@code AppMode.LOCKED}, confirms that <br>
      * - a {@code CommandException} is thrown <br>
      * - the CommandException message matches {@code expectedMessage} <br>
      * - the actualModel remain unchanged
      */
     public static void assertCommandFailure(Command command, Model actualModel, String expectedMessage) {
-        assertCommandFailure(command, actualModel, AppMode.UNLOCKED, expectedMessage);
+        assertCommandFailure(command, actualModel, AppMode.LOCKED, expectedMessage);
     }
 
     /**
      * Overloaded version of {@code assertCommandFailure} that allows specifying the {@code AppMode}.
      */
     public static void assertCommandFailure(Command command, Model actualModel, AppMode mode, String expectedMessage) {
-        // we are unable to defensively copy the model for comparison later, so we can
-        // only do so by copying its components.
         AddressBook expectedAddressBook = new AddressBook(actualModel.getAddressBook());
-        List<Person> expectedFilteredList = new ArrayList<>(actualModel.getFilteredPersonList());
+        List<Person> expectedFilteredList = new ArrayList<>(actualModel.getFilteredPersonList(mode));
 
         CommandContext context = new CommandContext(actualModel, mode);
         assertThrows(CommandException.class, expectedMessage, () -> command.execute(context));
 
         assertEquals(expectedAddressBook, actualModel.getAddressBook());
-        assertEquals(expectedFilteredList, actualModel.getFilteredPersonList());
+        assertEquals(expectedFilteredList, actualModel.getFilteredPersonList(mode));
     }
 
     /**
      * Updates {@code model}'s filtered list to show only the person at the given {@code targetIndex} in the
-     * {@code model}'s address book.
+     * locked contact list of {@code model}'s address book.
      */
     public static void showPersonAtIndex(Model model, Index targetIndex) {
-        assertTrue(targetIndex.getZeroBased() < model.getFilteredPersonList().size());
+        AppMode mode = AppMode.LOCKED;
+        assertTrue(targetIndex.getZeroBased() < model.getFilteredPersonList(mode).size());
 
-        Person person = model.getFilteredPersonList().get(targetIndex.getZeroBased());
+        Person person = model.getFilteredPersonList(mode).get(targetIndex.getZeroBased());
         final String[] splitName = person.getName().fullName.split("\\s+");
-        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(Arrays.asList(splitName[0])));
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(Arrays.asList(splitName[0])), mode);
 
-        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals(1, model.getFilteredPersonList(mode).size());
     }
 
 }

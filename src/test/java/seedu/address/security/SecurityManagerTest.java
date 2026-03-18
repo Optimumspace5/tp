@@ -44,11 +44,7 @@ public class SecurityManagerTest {
     public void isAuthenticated_setupCancelled_returnsFalse() {
         LogicStub logicStub = new LogicStub();
 
-        // Simulate user closes the window (supplier returns empty)
-        SecurityManager securityManager = new SecurityManager(
-                logicStub,
-                Optional::empty
-        );
+        SecurityManager securityManager = new SecurityManager(logicStub, Optional::empty);
 
         assertFalse(securityManager.isAuthenticated());
         assertEquals("", logicStub.getAddressBookPassword());
@@ -124,7 +120,7 @@ public class SecurityManagerTest {
 
         @Override
         public void saveAddressBook() throws java.io.IOException {
-            // No-op: We don't need to actually write to disk for this unit test
+            // No-op
         }
 
         @Override
@@ -143,7 +139,7 @@ public class SecurityManagerTest {
         }
 
         @Override
-        public ObservableList<Person> getFilteredPersonList() {
+        public ObservableList<Person> getFilteredPersonList(AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
 

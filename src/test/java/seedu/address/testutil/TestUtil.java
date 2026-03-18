@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.AppMode;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
@@ -14,10 +15,8 @@ import seedu.address.model.person.Person;
  */
 public class TestUtil {
 
-    /**
-     * Folder used for temp files created during testing. Ignored by Git.
-     */
     private static final Path SANDBOX_FOLDER = Paths.get("src", "test", "data", "sandbox");
+    private static final AppMode TEST_MODE = AppMode.LOCKED;
 
     /**
      * Appends {@code fileName} to the sandbox folder path and returns the resulting path.
@@ -36,20 +35,20 @@ public class TestUtil {
      * Returns the middle index of the person in the {@code model}'s person list.
      */
     public static Index getMidIndex(Model model) {
-        return Index.fromOneBased(model.getFilteredPersonList().size() / 2);
+        return Index.fromOneBased(model.getFilteredPersonList(TEST_MODE).size() / 2);
     }
 
     /**
      * Returns the last index of the person in the {@code model}'s person list.
      */
     public static Index getLastIndex(Model model) {
-        return Index.fromOneBased(model.getFilteredPersonList().size());
+        return Index.fromOneBased(model.getFilteredPersonList(TEST_MODE).size());
     }
 
     /**
      * Returns the person in the {@code model}'s person list at {@code index}.
      */
     public static Person getPerson(Model model, Index index) {
-        return model.getFilteredPersonList().get(index.getZeroBased());
+        return model.getFilteredPersonList(TEST_MODE).get(index.getZeroBased());
     }
 }

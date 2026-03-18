@@ -53,11 +53,11 @@ public class AddCommand extends Command {
         requireNonNull(context);
         Model model = context.getModel();
 
-        if (model.hasPerson(toAdd)) {
+        if (model.hasPerson(toAdd, context.getAppMode())) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.addPerson(toAdd);
+        model.addPerson(toAdd, context.getAppMode());
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
     }
 
