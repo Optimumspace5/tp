@@ -4,11 +4,12 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
 
 /**
- * Panel containing the list of persons.
+ * Panel containing the list of persons with "Smart Scrolling" logic.
  */
 public class PersonListPanel extends UiPart<Region> {
     private static final String FXML = "PersonListPanel.fxml";
@@ -20,56 +21,64 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
-        // Disable default tab traversal for the list so it doesn't steal focus
         personListView.setFocusTraversable(false);
     }
 
     /**
-     * Selects the next person in the list, wrapping around to the first if at the end.
+     * Helper to scroll only if the index is not currently visible.
      */
+    private void scrollToVisible(int index) {
+        // Find VirtualFlow (internal part of ListView)
+        VirtualFlow<?> flow = (VirtualFlow<?>) personListView.lookup(".virtual-flow");
+        if (flow == null) {
+            personListView.scrollTo(index); // Fallback
+            return;
+        }
+
+        int firstIndex = flow.getFirstVisibleCell().getIndex();
+        int lastIndex = flow.getLastVisibleCell().getIndex();
+
+        if (index <= firstIndex || index >= lastIndex) {
+            personListView.scrollTo(index);
+        }
+        // If index is between first and last, do nothing
+    }
+
     public void selectNext() {
         int size = personListView.getItems().size();
         if (size == 0) return;
 
-        int nextIndex = (personListView.getSelectionModel().getSelectedIndex() + 1) % size;
+        int currentIndex = personListView.getSelectionModel().getSelectedIndex();
+        int nextIndex = (currentIndex + 1) % size;
+
         personListView.getSelectionModel().select(nextIndex);
-        personListView.scrollTo(nextIndex);
+        scrollToVisible(nextIndex);
     }
 
-    /**
-     * Selects the previous person in the list, wrapping around to the last if at the start.
-     */
     public void selectPrevious() {
         int size = personListView.getItems().size();
         if (size == 0) return;
 
         int currentIndex = personListView.getSelectionModel().getSelectedIndex();
         int prevIndex = (currentIndex <= 0) ? size - 1 : currentIndex - 1;
+
         personListView.getSelectionModel().select(prevIndex);
-        personListView.scrollTo(prevIndex);
+        scrollToVisible(prevIndex);
     }
 
-    /**
-     * Selects the first person in the list.
-     */
     public void selectFirst() {
         if (personListView.getItems().isEmpty()) return;
         personListView.getSelectionModel().selectFirst();
-        personListView.scrollTo(0);
+        personListView.scrollTo(0); // Safe to jump to top for first item
     }
 
-    /**
-     * Selects the last person in the list.
-     */
     public void selectLast() {
-        if (personListView.getItems().isEmpty()) return;
+        int size = personListView.getItems().size();
+        if (size == 0) return;
         personListView.getSelectionModel().selectLast();
-        personListView.scrollTo(personListView.getItems().size() - 1);
+        personListView.scrollTo(size - 1); // Safe to jump to bottom for last item
     }
 
-    /**
-     * Returns true if a person is currently selected.
-     */
     public boolean isAnySelected() {
         return personListView.getSelectionModel().getSelectedIndex() >= 0;
     }
