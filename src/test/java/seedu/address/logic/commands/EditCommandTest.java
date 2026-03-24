@@ -107,12 +107,20 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_duplicatePersonUnfilteredList_throwsCommandException() {
+    public void execute_duplicatePersonUnfilteredList_overridesSuccess() {
         Person firstPerson = model.getFilteredPersonList(TEST_MODE).get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList(TEST_MODE).get(INDEX_SECOND_PERSON.getZeroBased());
         EditCommand.EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(firstPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, descriptor);
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(firstPerson));
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(firstPerson, TEST_MODE);
+        expectedModel.setPerson(secondPerson, firstPerson, TEST_MODE);
+
+        assertCommandSuccess(editCommand, model, TEST_MODE, new CommandResult(expectedMessage), expectedModel);
     }
 
     @Test

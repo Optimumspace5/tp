@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +16,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -28,6 +31,7 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String email;
     private final String address;
+    private final Integer status;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -36,11 +40,12 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("status") Integer status, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.status = status;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -54,6 +59,7 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
+        status = source.getStatus().getCode();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -62,9 +68,13 @@ class JsonAdaptedPerson {
     /**
      * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
      *
+     * Uses the given fallback status when deserializing legacy data that does not yet contain a status field.
+     *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
-    public Person toModelType() throws IllegalValueException {
+    public Person toModelType(PersonStatus fallbackStatus) throws IllegalValueException {
+        requireNonNull(fallbackStatus);
+
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             personTags.add(tag.toModelType());
@@ -102,8 +112,18 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
-    }
+        final PersonStatus modelStatus;
+        if (status == null) {
+            modelStatus = fallbackStatus;
+        } else {
+            try {
+                modelStatus = PersonStatus.fromCode(status);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalValueException(PersonStatus.MESSAGE_CONSTRAINTS);
+            }
+        }
 
+        final Set<Tag> modelTags = new HashSet<>(personTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelStatus);
+    }
 }

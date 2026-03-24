@@ -113,12 +113,7 @@ public class UnlockCommandTest {
         }
 
         @Override
-        public ObservableList<Person> getLockedPersonList() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableList<Person> getUnlockedPersonList() {
+        public ObservableList<Person> getPersonList() {
             throw new AssertionError("This method should not be called.");
         }
 

@@ -45,7 +45,7 @@ public class JsonSerializableAddressBookTest {
     public void toModelType_duplicatePersons_throwsIllegalValueException() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(DUPLICATE_PERSON_FILE,
                 JsonSerializableAddressBook.class).get();
-        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_LOCKED_PERSON,
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
                 dataFromFile::toModelType);
     }
 
@@ -56,14 +56,14 @@ public class JsonSerializableAddressBookTest {
                         .map(JsonAdaptedPerson::new)
                         .collect(Collectors.toList()),
                 new ArrayList<>(),
+                new ArrayList<>(),
                 null);
 
         AddressBook addressBook = data.toModelType();
 
         assertEquals("", addressBook.getPassword());
-        assertEquals(TypicalPersons.getTypicalAddressBook().getLockedPersonList(),
-                addressBook.getLockedPersonList());
-        assertEquals(new ArrayList<>(), addressBook.getUnlockedPersonList());
+        assertEquals(TypicalPersons.getTypicalAddressBook().getPersonList(),
+                addressBook.getPersonList());
     }
 
     @Test
@@ -89,6 +89,7 @@ public class JsonSerializableAddressBookTest {
     @Test
     public void toModelType_nullPassword_setsEmptyString() throws Exception {
         JsonSerializableAddressBook data = new JsonSerializableAddressBook(
+                new ArrayList<>(),
                 new ArrayList<>(),
                 new ArrayList<>(),
                 null);

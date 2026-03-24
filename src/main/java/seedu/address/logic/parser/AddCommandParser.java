@@ -16,6 +16,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -45,7 +46,9 @@ public class AddCommandParser implements Parser<AddCommand> {
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
-        Person person = new Person(name, phone, email, address, tagList);
+        // Placeholder status at parse time. The final status is assigned in AddCommand
+        // based on the current app mode during execution.
+        Person person = new Person(name, phone, email, address, tagList, PersonStatus.LOCKED);
 
         return new AddCommand(person);
     }

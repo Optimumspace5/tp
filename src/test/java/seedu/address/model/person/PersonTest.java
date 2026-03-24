@@ -37,6 +37,10 @@ public class PersonTest {
                 .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
+        // same name, different status -> returns true
+        editedAlice = new PersonBuilder(ALICE).withStatus(PersonStatus.UNLOCKED).build();
+        assertTrue(ALICE.isSamePerson(editedAlice));
+
         // different name, all other attributes same -> returns false
         editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
         assertFalse(ALICE.isSamePerson(editedAlice));
@@ -88,12 +92,17 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different status -> returns false
+        editedAlice = new PersonBuilder(ALICE).withStatus(PersonStatus.UNLOCKED).build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", status=" + ALICE.getStatus() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

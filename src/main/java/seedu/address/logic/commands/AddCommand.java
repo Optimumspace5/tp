@@ -8,10 +8,12 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 
 /**
  * Adds a person to the address book.
@@ -36,7 +38,6 @@ public class AddCommand extends Command {
             + PREFIX_TAG + " owesMoney";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book";
 
     private final Person toAdd;
 
@@ -53,12 +54,37 @@ public class AddCommand extends Command {
         requireNonNull(context);
         Model model = context.getModel();
 
-        if (model.hasPerson(toAdd, context.getAppMode())) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        Person personToAdd = withStatus(toAdd, getStatusForMode(context.getAppMode()));
+        Person personToOverride = findSamePerson(model, personToAdd);
+
+        if (personToOverride != null) {
+            model.deletePerson(personToOverride, context.getAppMode());
         }
 
-        model.addPerson(toAdd, context.getAppMode());
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+        model.addPerson(personToAdd, context.getAppMode());
+        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
+    }
+
+    private static PersonStatus getStatusForMode(AppMode appMode) {
+        return appMode == AppMode.LOCKED ? PersonStatus.LOCKED : PersonStatus.UNLOCKED;
+    }
+
+    private static Person withStatus(Person person, PersonStatus status) {
+        return new Person(
+                person.getName(),
+                person.getPhone(),
+                person.getEmail(),
+                person.getAddress(),
+                person.getTags(),
+                status
+        );
+    }
+
+    private static Person findSamePerson(Model model, Person target) {
+        return model.getPersonList().stream()
+                .filter(target::isSamePerson)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -67,7 +93,6 @@ public class AddCommand extends Command {
             return true;
         }
 
-        // instanceof handles nulls
         if (!(other instanceof AddCommand)) {
             return false;
         }
