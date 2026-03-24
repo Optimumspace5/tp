@@ -59,8 +59,8 @@ public class JsonAdaptedPersonTest {
     public void toModelType_invalidStatus_throwsIllegalValueException() {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, INVALID_STATUS, VALID_TAGS);
-        assertThrows(IllegalValueException.class, PersonStatus.MESSAGE_CONSTRAINTS,
-                () -> person.toModelType(PersonStatus.LOCKED));
+        assertThrows(IllegalValueException.class, PersonStatus.MESSAGE_CONSTRAINTS, () ->
+                person.toModelType(PersonStatus.LOCKED));
     }
 
     @Test

@@ -59,7 +59,7 @@ public class AddCommandTest {
 
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
                 commandResult.getFeedbackToUser());
-        assertEquals(existingPerson, modelStub.deletedPerson);
+        assertEquals(existingPerson, modelStub.getDeletedPerson());
         assertEquals(Arrays.asList(expectedPerson), modelStub.persons);
     }
 
@@ -209,7 +209,7 @@ public class AddCommandTest {
      */
     private class ModelStubWithExistingPerson extends ModelStub {
         final ArrayList<Person> persons = new ArrayList<>();
-        Person deletedPerson;
+        private Person deletedPerson;
 
         ModelStubWithExistingPerson(Person person) {
             requireNonNull(person);
@@ -237,6 +237,10 @@ public class AddCommandTest {
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
+        }
+
+        public Person getDeletedPerson() {
+            return deletedPerson;
         }
     }
 }
