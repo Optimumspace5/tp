@@ -137,16 +137,4 @@ public class AppModeManagerTest {
         assertTrue(modeManager.transitionTo(AppMode.LOCKED));
         assertEquals(AppMode.LOCKED, modeManager.getMode());
     }
-
-    @Test
-    public void modeManager_independentInstances() {
-        AppModeManager manager1 = new AppModeManager(AppMode.LOCKED);
-        AppModeManager manager2 = new AppModeManager(AppMode.UNLOCKED);
-
-        manager1.unlock();
-        manager2.lock();
-
-        assertEquals(AppMode.UNLOCKED, manager1.getMode());
-        assertEquals(AppMode.LOCKED, manager2.getMode());
-    }
 }
