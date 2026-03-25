@@ -9,16 +9,10 @@ import seedu.address.model.person.Person;
 public interface ReadOnlyAddressBook {
 
     /**
-     * Returns an unmodifiable view of the locked persons list.
+     * Returns an unmodifiable view of the combined persons list.
      * This list will not contain duplicate persons.
      */
-    ObservableList<Person> getLockedPersonList();
-
-    /**
-     * Returns an unmodifiable view of the unlocked persons list.
-     * This list will not contain duplicate persons.
-     */
-    ObservableList<Person> getUnlockedPersonList();
+    ObservableList<Person> getPersonList();
 
     /**
      * Returns the password required to access the address book data.
@@ -26,3 +20,4 @@ public interface ReadOnlyAddressBook {
     String getPassword();
 
 }
+

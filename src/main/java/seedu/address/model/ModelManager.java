@@ -13,6 +13,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.AppMode;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -35,8 +36,9 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        this.filteredLockedPersons = new FilteredList<>(this.addressBook.getLockedPersonList());
-        this.filteredUnlockedPersons = new FilteredList<>(this.addressBook.getUnlockedPersonList());
+        this.filteredLockedPersons = new FilteredList<>(this.addressBook.getPersonList(),
+                person -> person.getStatus() == PersonStatus.LOCKED);
+        this.filteredUnlockedPersons = new FilteredList<>(this.addressBook.getPersonList());
     }
 
     public ModelManager() {
@@ -91,32 +93,20 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public ObservableList<Person> getLockedPersonList() {
-        return addressBook.getLockedPersonList();
-    }
-
-    @Override
-    public ObservableList<Person> getUnlockedPersonList() {
-        return addressBook.getUnlockedPersonList();
+    public ObservableList<Person> getPersonList() {
+        return addressBook.getPersonList();
     }
 
     @Override
     public boolean hasPerson(Person person, AppMode appMode) {
         requireAllNonNull(person, appMode);
-        return isLockedMode(appMode)
-                ? addressBook.hasLockedPerson(person)
-                : addressBook.hasUnlockedPerson(person);
+        return addressBook.hasPerson(person);
     }
 
     @Override
     public void deletePerson(Person target, AppMode appMode) {
         requireAllNonNull(target, appMode);
-
-        if (isLockedMode(appMode)) {
-            addressBook.removeLockedPerson(target);
-        } else {
-            addressBook.removeUnlockedPerson(target);
-        }
+        addressBook.removePerson(target);
     }
 
     @Override
@@ -124,9 +114,9 @@ public class ModelManager implements Model {
         requireNonNull(appMode);
 
         if (isLockedMode(appMode)) {
-            addressBook.clearLockedPersons();
+            addressBook.clearPersonsWithStatus(PersonStatus.LOCKED);
         } else {
-            addressBook.clearUnlockedPersons();
+            addressBook.clearPersons();
         }
 
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
@@ -135,24 +125,14 @@ public class ModelManager implements Model {
     @Override
     public void addPerson(Person person, AppMode appMode) {
         requireAllNonNull(person, appMode);
-
-        if (isLockedMode(appMode)) {
-            addressBook.addLockedPerson(person);
-        } else {
-            addressBook.addUnlockedPerson(person);
-        }
+        addressBook.addPerson(person);
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
     }
 
     @Override
     public void setPerson(Person target, Person editedPerson, AppMode appMode) {
         requireAllNonNull(target, editedPerson, appMode);
-
-        if (isLockedMode(appMode)) {
-            addressBook.setLockedPerson(target, editedPerson);
-        } else {
-            addressBook.setUnlockedPerson(target, editedPerson);
-        }
+        addressBook.setPerson(target, editedPerson);
     }
 
     //=========== Password ===================================================================================
@@ -179,7 +159,13 @@ public class ModelManager implements Model {
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate, AppMode appMode) {
         requireAllNonNull(predicate, appMode);
-        getFilteredList(appMode).setPredicate(predicate);
+
+        if (isLockedMode(appMode)) {
+            filteredLockedPersons.setPredicate(person ->
+                    person.getStatus() == PersonStatus.LOCKED && predicate.test(person));
+        } else {
+            filteredUnlockedPersons.setPredicate(predicate);
+        }
     }
 
     private boolean isLockedMode(AppMode appMode) {

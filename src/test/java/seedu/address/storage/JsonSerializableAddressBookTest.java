@@ -45,7 +45,7 @@ public class JsonSerializableAddressBookTest {
     public void toModelType_duplicatePersons_throwsIllegalValueException() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(DUPLICATE_PERSON_FILE,
                 JsonSerializableAddressBook.class).get();
-        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_LOCKED_PERSON,
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
                 dataFromFile::toModelType);
     }
 
@@ -55,15 +55,13 @@ public class JsonSerializableAddressBookTest {
                 TypicalPersons.getTypicalPersons().stream()
                         .map(JsonAdaptedPerson::new)
                         .collect(Collectors.toList()),
-                new ArrayList<>(),
                 null);
 
         AddressBook addressBook = data.toModelType();
 
         assertEquals("", addressBook.getPassword());
-        assertEquals(TypicalPersons.getTypicalAddressBook().getLockedPersonList(),
-                addressBook.getLockedPersonList());
-        assertEquals(new ArrayList<>(), addressBook.getUnlockedPersonList());
+        assertEquals(TypicalPersons.getTypicalAddressBook().getPersonList(),
+                addressBook.getPersonList());
     }
 
     @Test
@@ -90,7 +88,6 @@ public class JsonSerializableAddressBookTest {
     public void toModelType_nullPassword_setsEmptyString() throws Exception {
         JsonSerializableAddressBook data = new JsonSerializableAddressBook(
                 new ArrayList<>(),
-                new ArrayList<>(),
                 null);
 
         AddressBook addressBook = data.toModelType();
@@ -98,4 +95,13 @@ public class JsonSerializableAddressBookTest {
         assertEquals("", addressBook.getPassword());
     }
 
+    @Test
+    public void toModelType_missingPersons_throwsIllegalValueException() throws Exception {
+        JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(
+                TEST_DATA_FOLDER.resolve("missingPersonsAddressBook.json"),
+                JsonSerializableAddressBook.class).get();
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_MISSING_PERSONS,
+                dataFromFile::toModelType);
+    }
 }

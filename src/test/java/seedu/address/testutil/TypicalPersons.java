@@ -65,7 +65,7 @@ public class TypicalPersons {
     public static AddressBook getTypicalAddressBook() {
         AddressBook ab = new AddressBook();
         for (Person person : getTypicalPersons()) {
-            ab.addLockedPerson(person);
+            ab.addPerson(person);
         }
         ab.setPassword("12345");
         return ab;

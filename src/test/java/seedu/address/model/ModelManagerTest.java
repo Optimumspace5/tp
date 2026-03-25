@@ -17,7 +17,10 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.AppMode;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -91,9 +94,67 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void hasPerson_sameIdentityDifferentStatus_returnsTrue() {
+        Person unlockedBenson = new PersonBuilder(BENSON).withStatus(PersonStatus.UNLOCKED).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(unlockedBenson).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertTrue(modelManager.hasPerson(BENSON, TEST_MODE));
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () ->
                 modelManager.getFilteredPersonList(TEST_MODE).remove(0));
+    }
+
+    @Test
+    public void getFilteredPersonList_lockedMode_showsOnlyLockedPersons() {
+        Person unlockedBenson = new PersonBuilder(BENSON).withStatus(PersonStatus.UNLOCKED).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(unlockedBenson).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertEquals(1, modelManager.getFilteredPersonList(AppMode.LOCKED).size());
+        assertEquals(ALICE, modelManager.getFilteredPersonList(AppMode.LOCKED).get(0));
+    }
+
+    @Test
+    public void getFilteredPersonList_unlockedMode_showsAllPersons() {
+        Person unlockedBenson = new PersonBuilder(BENSON).withStatus(PersonStatus.UNLOCKED).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(unlockedBenson).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertEquals(2, modelManager.getFilteredPersonList(AppMode.UNLOCKED).size());
+        assertTrue(modelManager.getFilteredPersonList(AppMode.UNLOCKED).contains(ALICE));
+        assertTrue(modelManager.getFilteredPersonList(AppMode.UNLOCKED).contains(unlockedBenson));
+    }
+
+    @Test
+    public void clearPersons_lockedMode_removesOnlyLockedPersons() {
+        Person unlockedBenson = new PersonBuilder(BENSON).withStatus(PersonStatus.UNLOCKED).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(unlockedBenson).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        modelManager.clearPersons(AppMode.LOCKED);
+
+        assertEquals(1, modelManager.getPersonList().size());
+        assertEquals(unlockedBenson, modelManager.getPersonList().get(0));
+        assertTrue(modelManager.getFilteredPersonList(AppMode.LOCKED).isEmpty());
+        assertEquals(1, modelManager.getFilteredPersonList(AppMode.UNLOCKED).size());
+        assertEquals(unlockedBenson, modelManager.getFilteredPersonList(AppMode.UNLOCKED).get(0));
+    }
+
+    @Test
+    public void clearPersons_unlockedMode_removesAllPersons() {
+        Person unlockedBenson = new PersonBuilder(BENSON).withStatus(PersonStatus.UNLOCKED).build();
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(unlockedBenson).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        modelManager.clearPersons(AppMode.UNLOCKED);
+
+        assertTrue(modelManager.getPersonList().isEmpty());
+        assertTrue(modelManager.getFilteredPersonList(AppMode.LOCKED).isEmpty());
+        assertTrue(modelManager.getFilteredPersonList(AppMode.UNLOCKED).isEmpty());
     }
 
     @Test

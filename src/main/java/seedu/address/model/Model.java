@@ -54,44 +54,36 @@ public interface Model {
     ReadOnlyAddressBook getAddressBook();
 
     /**
-     * Returns an unmodifiable view of the locked person list.
+     * Returns an unmodifiable view of the combined person list.
      */
-    ObservableList<Person> getLockedPersonList();
-
-    /**
-     * Returns an unmodifiable view of the unlocked person list.
-     */
-    ObservableList<Person> getUnlockedPersonList();
+    ObservableList<Person> getPersonList();
 
     /**
      * Returns true if a person with the same identity as {@code person}
-     * exists in the contact list for the given {@code appMode}.
+     * exists in the combined contact list.
      */
     boolean hasPerson(Person person, AppMode appMode);
 
     /**
-     * Deletes the given person from the contact list for the given {@code appMode}.
-     * The person must exist in the relevant contact list.
+     * Deletes the given person from the combined contact list.
      */
     void deletePerson(Person target, AppMode appMode);
 
     /**
-     * Clears all persons from the contact list for the given {@code appMode}.
+     * Clears persons according to the current app mode.
+     * In locked mode, only status=LOCKED persons are cleared.
+     * In unlocked mode, the whole combined list is cleared.
      */
     void clearPersons(AppMode appMode);
 
     /**
-     * Adds the given person to the contact list for the given {@code appMode}.
-     * {@code person} must not already exist in the relevant contact list.
+     * Adds the given person to the combined contact list.
      */
     void addPerson(Person person, AppMode appMode);
 
     /**
      * Replaces the given person {@code target} with {@code editedPerson}
-     * in the contact list for the given {@code appMode}.
-     * {@code target} must exist in the relevant contact list.
-     * The identity of {@code editedPerson} must not be the same as another
-     * existing person in the relevant contact list.
+     * in the combined contact list.
      */
     void setPerson(Person target, Person editedPerson, AppMode appMode);
 

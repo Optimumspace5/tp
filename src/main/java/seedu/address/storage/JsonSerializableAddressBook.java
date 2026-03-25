@@ -19,28 +19,24 @@ import seedu.address.model.person.Person;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
-    public static final String MESSAGE_DUPLICATE_LOCKED_PERSON =
+    public static final String MESSAGE_DUPLICATE_PERSON =
             "Contact list contains duplicate person(s).";
-    public static final String MESSAGE_DUPLICATE_UNLOCKED_PERSON =
-            "Contact list contains duplicate person(s).";
+    public static final String MESSAGE_MISSING_PERSONS =
+            "Address book persons list is missing!";
 
     private final String password;
-    private final List<JsonAdaptedPerson> lockedPersons = new ArrayList<>();
-    private final List<JsonAdaptedPerson> unlockedPersons = new ArrayList<>();
+    private final List<JsonAdaptedPerson> persons = new ArrayList<>();
+    private final boolean hasPersonsField;
 
     /**
-     * Constructs a {@code JsonSerializableAddressBook} with the given locked persons,
-     * unlocked persons, and password.
+     * Constructs a {@code JsonSerializableAddressBook} from the combined persons format.
      */
     @JsonCreator
-    public JsonSerializableAddressBook(@JsonProperty("lockedPersons") List<JsonAdaptedPerson> lockedPersons,
-                                       @JsonProperty("unlockedPersons") List<JsonAdaptedPerson> unlockedPersons,
+    public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
                                        @JsonProperty("password") String password) {
-        if (lockedPersons != null) {
-            this.lockedPersons.addAll(lockedPersons);
-        }
-        if (unlockedPersons != null) {
-            this.unlockedPersons.addAll(unlockedPersons);
+        hasPersonsField = persons != null;
+        if (persons != null) {
+            this.persons.addAll(persons);
         }
         this.password = (password != null) ? password : "";
     }
@@ -49,10 +45,8 @@ class JsonSerializableAddressBook {
      * Converts a given {@code ReadOnlyAddressBook} into this class for Jackson use.
      */
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
-        lockedPersons.addAll(source.getLockedPersonList().stream()
-                .map(JsonAdaptedPerson::new)
-                .collect(Collectors.toList()));
-        unlockedPersons.addAll(source.getUnlockedPersonList().stream()
+        hasPersonsField = true;
+        persons.addAll(source.getPersonList().stream()
                 .map(JsonAdaptedPerson::new)
                 .collect(Collectors.toList()));
         this.password = source.getPassword();
@@ -61,31 +55,22 @@ class JsonSerializableAddressBook {
     /**
      * Converts this address book into the model's {@code AddressBook} object.
      *
-     * @throws IllegalValueException if there were any data constraints violated in either person list.
+     * @throws IllegalValueException if there were any data constraints violated.
      */
     public AddressBook toModelType() throws IllegalValueException {
+        if (!hasPersonsField) {
+            throw new IllegalValueException(MESSAGE_MISSING_PERSONS);
+        }
+
         AddressBook addressBook = new AddressBook();
+        addressBook.setPassword(password);
 
-        if (password == null) {
-            addressBook.setPassword("");
-        } else {
-            addressBook.setPassword(password);
-        }
-
-        for (JsonAdaptedPerson jsonAdaptedPerson : lockedPersons) {
+        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
             Person person = jsonAdaptedPerson.toModelType();
-            if (addressBook.hasLockedPerson(person)) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_LOCKED_PERSON);
+            if (addressBook.hasPerson(person)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
             }
-            addressBook.addLockedPerson(person);
-        }
-
-        for (JsonAdaptedPerson jsonAdaptedPerson : unlockedPersons) {
-            Person person = jsonAdaptedPerson.toModelType();
-            if (addressBook.hasUnlockedPerson(person)) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_UNLOCKED_PERSON);
-            }
-            addressBook.addUnlockedPerson(person);
+            addressBook.addPerson(person);
         }
 
         return addressBook;

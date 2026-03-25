@@ -50,7 +50,6 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited Person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -79,10 +78,10 @@ public class EditCommand extends Command {
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        Person personToOverride = findPersonToOverride(model, personToEdit, editedPerson);
 
-        if (!personToEdit.isSamePerson(editedPerson)
-                && model.hasPerson(editedPerson, context.getAppMode())) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        if (personToOverride != null) {
+            model.deletePerson(personToOverride, context.getAppMode());
         }
 
         model.setPerson(personToEdit, editedPerson, context.getAppMode());
@@ -103,7 +102,15 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
+                personToEdit.getStatus());
+    }
+
+    private static Person findPersonToOverride(Model model, Person personToEdit, Person editedPerson) {
+        return model.getPersonList().stream()
+                .filter(person -> !person.equals(personToEdit) && person.isSamePerson(editedPerson))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -112,7 +119,6 @@ public class EditCommand extends Command {
             return true;
         }
 
-        // instanceof handles nulls
         if (!(other instanceof EditCommand)) {
             return false;
         }
@@ -217,7 +223,6 @@ public class EditCommand extends Command {
                 return true;
             }
 
-            // instanceof handles nulls
             if (!(other instanceof EditPersonDescriptor)) {
                 return false;
             }

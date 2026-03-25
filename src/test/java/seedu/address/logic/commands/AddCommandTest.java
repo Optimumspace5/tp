@@ -14,16 +14,17 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -37,25 +38,29 @@ public class AddCommandTest {
     public void execute_personAcceptedByModel_addSuccessful() throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
         Person validPerson = new PersonBuilder().build();
+        Person expectedPerson = new PersonBuilder(validPerson).withStatus(PersonStatus.UNLOCKED).build();
 
         CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
         CommandResult commandResult = new AddCommand(validPerson).execute(context);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
                 commandResult.getFeedbackToUser());
-        assertEquals(Arrays.asList(validPerson), modelStub.personsAdded);
+        assertEquals(Arrays.asList(expectedPerson), modelStub.persons);
     }
 
     @Test
-    public void execute_duplicatePerson_throwsCommandException() {
-        Person validPerson = new PersonBuilder().build();
-        AddCommand addCommand = new AddCommand(validPerson);
-        ModelStub modelStub = new ModelStubWithPerson(validPerson);
+    public void execute_duplicatePerson_replacesExistingPerson() throws Exception {
+        Person existingPerson = new PersonBuilder().build();
+        Person expectedPerson = new PersonBuilder(existingPerson).withStatus(PersonStatus.UNLOCKED).build();
+        ModelStubWithExistingPerson modelStub = new ModelStubWithExistingPerson(existingPerson);
 
         CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
+        CommandResult commandResult = new AddCommand(existingPerson).execute(context);
 
-        assertThrows(CommandException.class,
-                AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(context));
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
+                commandResult.getFeedbackToUser());
+        assertEquals(existingPerson, modelStub.getDeletedPerson());
+        assertEquals(Arrays.asList(expectedPerson), modelStub.persons);
     }
 
     @Test
@@ -65,32 +70,28 @@ public class AddCommandTest {
         AddCommand addAliceCommand = new AddCommand(alice);
         AddCommand addBobCommand = new AddCommand(bob);
 
-        // same object -> returns true
         assertTrue(addAliceCommand.equals(addAliceCommand));
-
-        // same values -> returns true
         AddCommand addAliceCommandCopy = new AddCommand(alice);
         assertTrue(addAliceCommand.equals(addAliceCommandCopy));
-
-        // different types -> returns false
         assertFalse(addAliceCommand.equals(1));
-
-        // null -> returns false
         assertFalse(addAliceCommand.equals(null));
-
-        // different person -> returns false
         assertFalse(addAliceCommand.equals(addBobCommand));
     }
 
     @Test
     public void toStringMethod() {
         AddCommand addCommand = new AddCommand(ALICE);
-        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + ALICE + "}";
+        String expected = AddCommand.class.getCanonicalName()
+                + "{name=" + ALICE.getName()
+                + ", phone=" + ALICE.getPhone()
+                + ", email=" + ALICE.getEmail()
+                + ", address=" + ALICE.getAddress()
+                + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, addCommand.toString());
     }
 
     /**
-     * A default model stub that have all of the methods failing.
+     * A default model stub that has all of the methods failing.
      */
     private class ModelStub implements Model {
         @Override
@@ -124,12 +125,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public ObservableList<Person> getLockedPersonList() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ObservableList<Person> getUnlockedPersonList() {
+        public ObservableList<Person> getPersonList() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -191,39 +187,20 @@ public class AddCommandTest {
     }
 
     /**
-     * A Model stub that contains a single person.
-     */
-    private class ModelStubWithPerson extends ModelStub {
-        private final Person person;
-
-        ModelStubWithPerson(Person person) {
-            requireNonNull(person);
-            this.person = person;
-        }
-
-        @Override
-        public boolean hasPerson(Person person, AppMode appMode) {
-            requireNonNull(person);
-            return this.person.isSamePerson(person);
-        }
-    }
-
-    /**
-     * A Model stub that always accept the person being added.
+     * A Model stub that always accepts the person being added.
      */
     private class ModelStubAcceptingPersonAdded extends ModelStub {
-        final ArrayList<Person> personsAdded = new ArrayList<>();
+        final ArrayList<Person> persons = new ArrayList<>();
 
         @Override
-        public boolean hasPerson(Person person, AppMode appMode) {
-            requireNonNull(person);
-            return personsAdded.stream().anyMatch(person::isSamePerson);
+        public ObservableList<Person> getPersonList() {
+            return FXCollections.observableArrayList(persons);
         }
 
         @Override
         public void addPerson(Person person, AppMode appMode) {
             requireNonNull(person);
-            personsAdded.add(person);
+            persons.add(person);
         }
 
         @Override
@@ -232,4 +209,43 @@ public class AddCommandTest {
         }
     }
 
+    /**
+     * A Model stub that starts with one existing person and supports override.
+     */
+    private class ModelStubWithExistingPerson extends ModelStub {
+        final ArrayList<Person> persons = new ArrayList<>();
+        private Person deletedPerson;
+
+        ModelStubWithExistingPerson(Person person) {
+            requireNonNull(person);
+            persons.add(person);
+        }
+
+        @Override
+        public ObservableList<Person> getPersonList() {
+            return FXCollections.observableArrayList(persons);
+        }
+
+        @Override
+        public void deletePerson(Person target, AppMode appMode) {
+            requireNonNull(target);
+            persons.remove(target);
+            deletedPerson = target;
+        }
+
+        @Override
+        public void addPerson(Person person, AppMode appMode) {
+            requireNonNull(person);
+            persons.add(person);
+        }
+
+        @Override
+        public ReadOnlyAddressBook getAddressBook() {
+            return new AddressBook();
+        }
+
+        public Person getDeletedPerson() {
+            return deletedPerson;
+        }
+    }
 }
