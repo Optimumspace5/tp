@@ -6,7 +6,6 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -14,9 +13,6 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.PersonStatus;
-import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.TypicalPersons;
 
 public class JsonSerializableAddressBookTest {
@@ -59,8 +55,6 @@ public class JsonSerializableAddressBookTest {
                 TypicalPersons.getTypicalPersons().stream()
                         .map(JsonAdaptedPerson::new)
                         .collect(Collectors.toList()),
-                new ArrayList<>(),
-                new ArrayList<>(),
                 null);
 
         AddressBook addressBook = data.toModelType();
@@ -68,37 +62,6 @@ public class JsonSerializableAddressBookTest {
         assertEquals("", addressBook.getPassword());
         assertEquals(TypicalPersons.getTypicalAddressBook().getPersonList(),
                 addressBook.getPersonList());
-    }
-
-    @Test
-    public void toModelType_legacyLockedAndUnlockedSamePerson_unlockedWins() throws Exception {
-        Person lockedAlice = new PersonBuilder(TypicalPersons.ALICE)
-                .withStatus(PersonStatus.LOCKED)
-                .build();
-        Person unlockedAlice = new PersonBuilder(TypicalPersons.ALICE)
-                .withEmail("alice-unlocked@example.com")
-                .withStatus(PersonStatus.UNLOCKED)
-                .build();
-
-        List<JsonAdaptedPerson> legacyLockedPersons = new ArrayList<>();
-        legacyLockedPersons.add(toLegacyJsonAdaptedPerson(lockedAlice));
-
-        List<JsonAdaptedPerson> legacyUnlockedPersons = new ArrayList<>();
-        legacyUnlockedPersons.add(toLegacyJsonAdaptedPerson(unlockedAlice));
-
-        JsonSerializableAddressBook data = new JsonSerializableAddressBook(
-                new ArrayList<>(),
-                legacyLockedPersons,
-                legacyUnlockedPersons,
-                "legacyPassword");
-
-        AddressBook addressBook = data.toModelType();
-
-        AddressBook expectedAddressBook = new AddressBook();
-        expectedAddressBook.addPerson(unlockedAlice);
-        expectedAddressBook.setPassword("legacyPassword");
-
-        assertEquals(expectedAddressBook, addressBook);
     }
 
     @Test
@@ -125,8 +88,6 @@ public class JsonSerializableAddressBookTest {
     public void toModelType_nullPassword_setsEmptyString() throws Exception {
         JsonSerializableAddressBook data = new JsonSerializableAddressBook(
                 new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
                 null);
 
         AddressBook addressBook = data.toModelType();
@@ -134,17 +95,13 @@ public class JsonSerializableAddressBookTest {
         assertEquals("", addressBook.getPassword());
     }
 
-    private JsonAdaptedPerson toLegacyJsonAdaptedPerson(Person person) {
-        List<JsonAdaptedTag> tags = person.getTags().stream()
-                .map(JsonAdaptedTag::new)
-                .collect(Collectors.toList());
+    @Test
+    public void toModelType_missingPersons_throwsIllegalValueException() throws Exception {
+        JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(
+                TEST_DATA_FOLDER.resolve("missingPersonsAddressBook.json"),
+                JsonSerializableAddressBook.class).get();
 
-        return new JsonAdaptedPerson(
-                person.getName().toString(),
-                person.getPhone().toString(),
-                person.getEmail().toString(),
-                person.getAddress().toString(),
-                null,
-                tags);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_MISSING_PERSONS,
+                dataFromFile::toModelType);
     }
 }

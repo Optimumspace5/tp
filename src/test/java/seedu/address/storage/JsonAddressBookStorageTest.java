@@ -9,7 +9,6 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -19,9 +18,6 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.PersonStatus;
-import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -62,42 +58,6 @@ public class JsonAddressBookStorageTest {
     @Test
     public void readAddressBook_invalidAndValidPersonAddressBook_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidAndValidPersonAddressBook.json"));
-    }
-
-    @Test
-    public void readAddressBook_legacyLockedAndUnlockedSamePerson_unlockedWins() throws Exception {
-        Path filePath = testFolder.resolve("legacyConflictAddressBook.json");
-        String legacyJsonContent = "{\n"
-                + "  \"lockedPersons\" : [ {\n"
-                + "    \"name\" : \"Alice Pauline\",\n"
-                + "    \"phone\" : \"94351253\",\n"
-                + "    \"email\" : \"alice@example.com\",\n"
-                + "    \"address\" : \"123, Jurong West Ave 6, #08-111\",\n"
-                + "    \"tags\" : [ \"friends\" ]\n"
-                + "  } ],\n"
-                + "  \"unlockedPersons\" : [ {\n"
-                + "    \"name\" : \"Alice Pauline\",\n"
-                + "    \"phone\" : \"94351253\",\n"
-                + "    \"email\" : \"alice-unlocked@example.com\",\n"
-                + "    \"address\" : \"123, Jurong West Ave 6, #08-111\",\n"
-                + "    \"tags\" : [ \"friends\" ]\n"
-                + "  } ],\n"
-                + "  \"password\" : \"legacyPassword\"\n"
-                + "}\n";
-        Files.writeString(filePath, legacyJsonContent);
-
-        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
-        ReadOnlyAddressBook readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
-
-        Person expectedPerson = new PersonBuilder(ALICE)
-                .withEmail("alice-unlocked@example.com")
-                .withStatus(PersonStatus.UNLOCKED)
-                .build();
-        AddressBook expectedAddressBook = new AddressBook();
-        expectedAddressBook.addPerson(expectedPerson);
-        expectedAddressBook.setPassword("legacyPassword");
-
-        assertEquals(expectedAddressBook, new AddressBook(readBack));
     }
 
     @Test

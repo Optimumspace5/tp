@@ -1,7 +1,5 @@
 package seedu.address.storage;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -68,13 +66,9 @@ class JsonAdaptedPerson {
     /**
      * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
      *
-     * Uses the given fallback status when deserializing legacy data that does not yet contain a status field.
-     *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
-    public Person toModelType(PersonStatus fallbackStatus) throws IllegalValueException {
-        requireNonNull(fallbackStatus);
-
+    public Person toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             personTags.add(tag.toModelType());
@@ -112,15 +106,15 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        final PersonStatus modelStatus;
         if (status == null) {
-            modelStatus = fallbackStatus;
-        } else {
-            try {
-                modelStatus = PersonStatus.fromCode(status);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalValueException(PersonStatus.MESSAGE_CONSTRAINTS);
-            }
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "status"));
+        }
+
+        final PersonStatus modelStatus;
+        try {
+            modelStatus = PersonStatus.fromCode(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(PersonStatus.MESSAGE_CONSTRAINTS);
         }
 
         final Set<Tag> modelTags = new HashSet<>(personTags);

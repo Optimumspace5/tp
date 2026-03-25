@@ -1,19 +1,28 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.person.Address;
+import seedu.address.model.person.Email;
+import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonStatus;
+import seedu.address.model.person.Phone;
+import seedu.address.model.tag.Tag;
 
 /**
  * Adds a person to the address book.
@@ -39,14 +48,33 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
 
-    private final Person toAdd;
+    private final Name name;
+    private final Phone phone;
+    private final Email email;
+    private final Address address;
+    private final Set<Tag> tags;
 
     /**
-     * Creates an AddCommand to add the specified {@code Person}
+     * Creates an AddCommand to add the specified {@code Person}.
      */
     public AddCommand(Person person) {
-        requireNonNull(person);
-        toAdd = person;
+        this(requireNonNull(person).getName(),
+                person.getPhone(),
+                person.getEmail(),
+                person.getAddress(),
+                person.getTags());
+    }
+
+    /**
+     * Creates an AddCommand from parsed person fields.
+     */
+    public AddCommand(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, address, tags);
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+        this.tags = new HashSet<>(tags);
     }
 
     @Override
@@ -54,7 +82,7 @@ public class AddCommand extends Command {
         requireNonNull(context);
         Model model = context.getModel();
 
-        Person personToAdd = withStatus(toAdd, getStatusForMode(context.getAppMode()));
+        Person personToAdd = createPersonForMode(context.getAppMode());
         Person personToOverride = findSamePerson(model, personToAdd);
 
         if (personToOverride != null) {
@@ -65,19 +93,12 @@ public class AddCommand extends Command {
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
     }
 
-    private static PersonStatus getStatusForMode(AppMode appMode) {
-        return appMode == AppMode.LOCKED ? PersonStatus.LOCKED : PersonStatus.UNLOCKED;
+    private Person createPersonForMode(AppMode appMode) {
+        return new Person(name, phone, email, address, tags, getStatusForMode(appMode));
     }
 
-    private static Person withStatus(Person person, PersonStatus status) {
-        return new Person(
-                person.getName(),
-                person.getPhone(),
-                person.getEmail(),
-                person.getAddress(),
-                person.getTags(),
-                status
-        );
+    private static PersonStatus getStatusForMode(AppMode appMode) {
+        return appMode == AppMode.LOCKED ? PersonStatus.LOCKED : PersonStatus.UNLOCKED;
     }
 
     private static Person findSamePerson(Model model, Person target) {
@@ -98,13 +119,21 @@ public class AddCommand extends Command {
         }
 
         AddCommand otherAddCommand = (AddCommand) other;
-        return toAdd.equals(otherAddCommand.toAdd);
+        return name.equals(otherAddCommand.name)
+                && phone.equals(otherAddCommand.phone)
+                && email.equals(otherAddCommand.email)
+                && address.equals(otherAddCommand.address)
+                && tags.equals(otherAddCommand.tags);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("toAdd", toAdd)
+                .add("name", name)
+                .add("phone", phone)
+                .add("email", email)
+                .add("address", address)
+                .add("tags", tags)
                 .toString();
     }
 }
