@@ -100,6 +100,19 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void constructor_defaultConstructor_startsInLockedMode() {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("defaultModeAddressBook.json"));
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(temporaryFolder.resolve("defaultModeUserPrefs.json"));
+        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+
+        logic = new LogicManager(model, storage);
+
+        assertEquals(AppMode.LOCKED, logic.getCurrentMode());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -252,5 +265,47 @@ public class LogicManagerTest {
 
         CommandResult lockResult = logic.execute(LockCommand.COMMAND_WORD);
         assertEquals(LockCommand.MESSAGE_SUCCESS, lockResult.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_unlockCommand_updatesCurrentModeToUnlocked() throws Exception {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("unlockModeAddressBook.json"));
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(temporaryFolder.resolve("unlockModeUserPrefs.json"));
+        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        logic = new LogicManager(model, storage, new AppModeManager(AppMode.LOCKED));
+
+        String password = "modeSwitchPassword";
+        logic.setAddressBookPassword(password);
+        assertEquals(AppMode.LOCKED, logic.getCurrentMode());
+
+        CommandResult unlockResult = logic.execute(UnlockCommand.COMMAND_WORD + " " + password);
+        assertEquals(UnlockCommand.MESSAGE_SUCCESS, unlockResult.getFeedbackToUser());
+        assertEquals(AppMode.UNLOCKED, logic.getCurrentMode());
+    }
+
+    @Test
+    public void execute_lockCommand_updatesCurrentModeToLocked() throws Exception {
+        // Transition to UNLOCKED first (current mode is LOCKED after setUp)
+        logic.setAddressBookPassword("validPassword123");
+        logic.execute(UnlockCommand.COMMAND_WORD + " validPassword123");
+        assertEquals(AppMode.UNLOCKED, logic.getCurrentMode());
+
+        CommandResult lockResult = logic.execute(LockCommand.COMMAND_WORD);
+        assertEquals(LockCommand.MESSAGE_SUCCESS, lockResult.getFeedbackToUser());
+        assertEquals(AppMode.LOCKED, logic.getCurrentMode());
+    }
+
+    @Test
+    public void execute_listCommand_doesNotChangeCurrentMode() throws Exception {
+        // Transition to UNLOCKED first (current mode is LOCKED after setUp)
+        logic.setAddressBookPassword("validPassword123");
+        logic.execute(UnlockCommand.COMMAND_WORD + " validPassword123");
+        assertEquals(AppMode.UNLOCKED, logic.getCurrentMode());
+
+        CommandResult listResult = logic.execute(ListCommand.COMMAND_WORD);
+        assertEquals(ListCommand.MESSAGE_SUCCESS, listResult.getFeedbackToUser());
+        assertEquals(AppMode.UNLOCKED, logic.getCurrentMode());
     }
 }

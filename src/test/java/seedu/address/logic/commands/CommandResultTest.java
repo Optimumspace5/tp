@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ public class CommandResultTest {
 
         // same values -> returns true
         assertEquals(new CommandResult("feedback"), commandResult);
-        assertEquals(new CommandResult("feedback", false, false, false, null), commandResult);
 
         // same object -> returns true
         assertEquals(commandResult, commandResult);
@@ -39,9 +39,19 @@ public class CommandResultTest {
         // different exit value -> returns false
         assertNotEquals(new CommandResult("feedback", false, false, true), commandResult);
 
-        // different requestedMode value -> returns false
-        assertNotEquals(new CommandResult("feedback", false, false, false,
-                AppMode.LOCKED), commandResult);
+        // same mode request value -> returns true
+        assertEquals(new CommandResult("feedback", false, false, false, AppMode.LOCKED),
+            new CommandResult("feedback", false, false, false, AppMode.LOCKED));
+        assertEquals(new CommandResult("feedback", false, false, false, AppMode.UNLOCKED),
+            new CommandResult("feedback", false, false, false, AppMode.UNLOCKED));
+
+        // different mode request value -> returns false
+        assertNotEquals(new CommandResult("feedback", false, false, false, AppMode.LOCKED),
+            new CommandResult("feedback", false, false, false, AppMode.UNLOCKED));
+
+        // with and without mode -> returns false
+        assertNotEquals(new CommandResult("feedback", false, false, false, AppMode.LOCKED),
+            new CommandResult("feedback", false, false, false));
 
         // different selectedIndex value -> returns false
         assertNotEquals(new CommandResult("feedback", INDEX_FIRST_PERSON), commandResult);
@@ -66,9 +76,13 @@ public class CommandResultTest {
         // different exit value -> returns different hashcode
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, false, true).hashCode());
 
-        // different requestedMode value -> returns different hashcode
-        assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, false, false,
-                seedu.address.logic.AppMode.LOCKED).hashCode());
+        // same mode request value -> returns same hashcode
+        assertEquals(new CommandResult("feedback", false, false, false, AppMode.LOCKED).hashCode(),
+            new CommandResult("feedback", false, false, false, AppMode.LOCKED).hashCode());
+
+        // different mode request value -> returns different hashcode
+        assertNotEquals(new CommandResult("feedback", false, false, false, AppMode.LOCKED).hashCode(),
+            new CommandResult("feedback", false, false, false, AppMode.UNLOCKED).hashCode());
 
         // different selectedIndex value -> returns different hashcode
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", INDEX_FIRST_PERSON).hashCode());
@@ -84,5 +98,10 @@ public class CommandResultTest {
                 + ", requestedMode=" + commandResult.getRequestedMode().orElse(null)
                 + ", selectedIndex=" + commandResult.getSelectedIndex().orElse(null) + "}";
         assertEquals(expected, commandResult.toString());
+
+        CommandResult lockCommandResult = new CommandResult("feedback", false, false, false, AppMode.LOCKED);
+        CommandResult unlockCommandResult = new CommandResult("feedback", false, false, false, AppMode.UNLOCKED);
+        assertTrue(lockCommandResult.toString().contains("LOCKED"));
+        assertTrue(unlockCommandResult.toString().contains("UNLOCKED"));
     }
 }
