@@ -133,7 +133,7 @@ public class MainWindow extends UiPart<Stage> {
 
         updateUi(logic.getCurrentMode());
 
-        if (security.isAuthenticated()) {
+        if (!security.isAuthenticated()) {
             handleSetup();
         }
 
@@ -173,7 +173,7 @@ public class MainWindow extends UiPart<Stage> {
             }
         }
         // Check the SecurityManager to see if we should jump to setup immediately
-        if (security.isAuthenticated()) {
+        if (!security.isAuthenticated()) {
             handleSetup();
         }
     }

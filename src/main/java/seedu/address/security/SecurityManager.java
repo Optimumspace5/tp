@@ -33,21 +33,34 @@ public class SecurityManager implements Security {
      * Checks if the application requires initial password setup.
      * This logic determines if the user should be forced into the setup view.
      *
-     * @return True if no password exists or the stored password is invalid; false otherwise.
+     * @return False if no password exists or the stored password is invalid; true otherwise.
      */
     @Override
     public boolean isAuthenticated() {
         String storedPassword = logic.getAddressBookPassword();
-        boolean isMissing = storedPassword == null;
-        boolean isInvalid = !isMissing && !PasswordUtil.isValidPassword(storedPassword);
 
-        if (isMissing) {
+        if (storedPassword == null) {
             logger.info("No password found in storage. Setup required.");
-        } else if (isInvalid) {
-            logger.warning("Invalid password detected in data file. Setup required for reset.");
+            return false;
         }
 
-        return isMissing || isInvalid;
+        if (PasswordUtil.isStrictlyValid(storedPassword)) {
+            return true;
+        }
+
+        String trimmed = storedPassword.trim();
+        if (PasswordUtil.isValidPassword(trimmed)) {
+            logger.warning("Whitespace detected in stored password. Repairing data file...");
+            try {
+                savePassword(trimmed);
+                return true;
+            } catch (Exception e) {
+                logger.severe("Auto-repair failed: " + e.getMessage());
+            }
+        }
+
+        logger.warning("Password is unrecoverable. Setup required.");
+        return false;
     }
 
     /**
@@ -65,7 +78,7 @@ public class SecurityManager implements Security {
         try {
             logic.setAddressBookPassword(password);
             logic.saveAddressBook();
-            logger.info("Security setup complete: Password saved to data file.");
+            logger.info("Password saved to data file.");
 
         } catch (IOException e) {
             logger.severe("Failed to save address book after password update.");

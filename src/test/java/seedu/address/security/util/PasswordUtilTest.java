@@ -92,4 +92,15 @@ public class PasswordUtilTest {
         assertNull(PasswordUtil.getValidationError("k\\l"));
         assertNull(PasswordUtil.getValidationError("\\n\\t"));
     }
+
+    @Test
+    public void isStrictlyValid_trailingWhitespace_returnsFalse() {
+        assertFalse(PasswordUtil.isStrictlyValid("password "));
+        assertFalse(PasswordUtil.isStrictlyValid(" password"));
+    }
+
+    @Test
+    public void isStrictlyValid_cleanPassword_returnsTrue() {
+        assertTrue(PasswordUtil.isStrictlyValid("password123"));
+    }
 }
