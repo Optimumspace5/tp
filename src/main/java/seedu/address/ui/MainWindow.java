@@ -193,7 +193,11 @@ public class MainWindow extends UiPart<Stage> {
     private void refreshPersonListPanel() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanel.setOnSelectionChange(person -> {
-            personDetailPanel.setPerson(person);
+            if (person == null) {
+                personDetailPanel.clearPerson();
+            } else {
+                personDetailPanel.setPerson(person);
+            }
         });
         personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
     }
@@ -216,8 +220,8 @@ public class MainWindow extends UiPart<Stage> {
     private void updateUi(AppMode mode) {
         boolean isLocked = mode == AppMode.LOCKED;
         primaryStage.setTitle(isLocked ? "AddressBook" : "Spyglass");
-        refreshPersonListPanel();
         personDetailPanel.clearPerson();
+        refreshPersonListPanel();
     }
 
     void show() {
@@ -279,7 +283,6 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            resultHistory.setFeedbackToUser(commandResult.getFeedbackToUser());
 
             // Handle mode change if requested by the command result
             boolean isModeChangedToUnlocked = commandResult.getRequestedMode().isPresent()
@@ -292,6 +295,13 @@ public class MainWindow extends UiPart<Stage> {
                 updateUi(mode);
             });
 
+            // Only show feedback for unlock; lock clears and stays blank
+            if (isModeChangedToUnlocked) {
+                resultHistory.setFeedbackToUser(commandText, commandResult.getFeedbackToUser());
+            } else if (commandResult.getRequestedMode().isEmpty()) {
+                resultHistory.setFeedbackToUser(commandText, commandResult.getFeedbackToUser());
+            }
+
             // Handle setup transition
             if (commandResult.isShowSetup()) {
                 handleSetup();
@@ -300,9 +310,6 @@ public class MainWindow extends UiPart<Stage> {
             commandResult.getSelectedIndex().ifPresent(personListPanel::select);
 
             logger.info("Result: " + commandResult.getFeedbackToUser());
-            if (isModeChangedToUnlocked) {
-                resultHistory.setFeedbackToUser(commandResult.getFeedbackToUser());
-            }
 
             if (commandResult.isShowHelp()) {
                 handleHelp();
@@ -315,7 +322,7 @@ public class MainWindow extends UiPart<Stage> {
             return commandResult;
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
-            resultHistory.setFeedbackToUser(e.getMessage());
+            resultHistory.setFeedbackToUser(commandText, e.getMessage());
             throw e;
         }
     }
