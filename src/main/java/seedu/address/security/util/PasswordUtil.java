@@ -9,6 +9,8 @@ public class PasswordUtil {
 
     public static final String MESSAGE_EMPTY = "Password cannot be empty!";
     public static final String MESSAGE_NO_SPACES = "Password must not contain spaces!";
+    public static final String MESSAGE_ONLY_ASCII = "Password must only have "
+            + "alphanumeric characters and symbols!";
 
     /**
      * Checks if the password is valid, allowing for leading or trailing whitespace.
@@ -51,9 +53,16 @@ public class PasswordUtil {
             return MESSAGE_EMPTY;
         }
 
-        if (password.trim().contains(" ")) {
+        String trimmed = password.trim();
+
+        if (trimmed.contains(" ")) {
             return MESSAGE_NO_SPACES;
         }
+
+        if (!trimmed.matches("^[\\x20-\\x7E]*$")) {
+            return MESSAGE_ONLY_ASCII;
+        }
+
         return null;
     }
 }
