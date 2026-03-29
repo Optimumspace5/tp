@@ -19,6 +19,11 @@ public enum PersonStatus {
         return code;
     }
 
+    @Override
+    public String toString() {
+        return this == LOCKED ? "Public" : "Sensitive";
+    }
+
     /**
      * Returns the {@code PersonStatus} for the given code.
      *

@@ -30,14 +30,14 @@
             <StackPane fx:id="resultHistoryPlaceholder"
                        VBox.vgrow="ALWAYS"
                        styleClass="pane-with-border"
-                       minHeight="350"
-                       prefHeight="450" />
+                       minHeight="320"
+                       prefHeight="420" />
 
             <StackPane fx:id="personDetailPlaceholder"
                        VBox.vgrow="SOMETIMES"
                        styleClass="pane-with-border"
-                       minHeight="160"
-                       prefHeight="210" />
+                       minHeight="190"
+                       prefHeight="240" />
           </VBox>
 
           <VBox fx:id="rightPanel" styleClass="background" HBox.hgrow="ALWAYS">

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test class for {@code PasswordUtil}.
- * Focuses on hashing consistency and validation rules for application setup.
+ * Focuses on validation rules including ASCII-only requirements and whitespace handling.
  */
 public class PasswordUtilTest {
 
@@ -28,43 +28,52 @@ public class PasswordUtilTest {
     @Test
     public void isValidPassword_onlyWhitespace_returnsFalse() {
         assertFalse(PasswordUtil.isValidPassword("   "));
-        // Java's trim function treats \n\t as escape characters
         assertFalse(PasswordUtil.isValidPassword("\n\t"));
     }
 
     @Test
-    public void isValidPassword_singleCharacter_returnsTrue() {
-        assertTrue(PasswordUtil.isValidPassword("p"));
-    }
-
-    @Test
     public void isValidPassword_alphanumeric_returnsTrue() {
+        assertTrue(PasswordUtil.isValidPassword("p"));
         assertTrue(PasswordUtil.isValidPassword("password123"));
     }
 
     @Test
-    public void isValidPassword_specialCharacters_returnsTrue() {
-        assertTrue(PasswordUtil.isValidPassword("!@#$%^&*()"));
+    public void isValidPassword_allPrintableAsciiSymbols_returnsTrue() {
+        assertTrue(PasswordUtil.isValidPassword("!@#$%^&*()_+-=[]{}|;':\",./<>?`~"));
     }
 
     @Test
     public void isValidPassword_withLeadingTrailingWhitespace_returnsTrue() {
-        assertTrue(PasswordUtil.isValidPassword("  actualPassword  "));
+        // Leading/trailing whitespace is ignored for basic validation as it's auto-trimmed
+        assertTrue(PasswordUtil.isValidPassword("  actualPassword123  "));
+        assertTrue(PasswordUtil.isValidPassword("\tpassword\n"));
     }
 
     @Test
     public void isValidPassword_containsInternalSpace_returnsFalse() {
-        assertFalse(PasswordUtil.isValidPassword("k l"));
+        assertFalse(PasswordUtil.isValidPassword("pass word"));
     }
 
     @Test
-    public void isValidPassword_containsInternalTab_returnsTrue() {
-        assertTrue(PasswordUtil.isValidPassword("k\tl"));
+    public void isValidPassword_containsEmojis_returnsFalse() {
+        assertFalse(PasswordUtil.isValidPassword("password😊"));
+        assertFalse(PasswordUtil.isValidPassword("🔥"));
+        assertFalse(PasswordUtil.isValidPassword("✨pass✨"));
     }
 
     @Test
-    public void isValidPassword_literalBackslash_returnsTrue() {
-        assertTrue(PasswordUtil.isValidPassword("k\\l"));
+    public void isValidPassword_containsAccentedCharacters_returnsFalse() {
+        assertFalse(PasswordUtil.isValidPassword("pássword"));
+        assertFalse(PasswordUtil.isValidPassword("reproducé"));
+        assertFalse(PasswordUtil.isValidPassword("München"));
+    }
+
+    @Test
+    public void isValidPassword_containsNonLatinScripts_returnsFalse() {
+        assertFalse(PasswordUtil.isValidPassword("密码123"));
+        assertFalse(PasswordUtil.isValidPassword("пароль"));
+        assertFalse(PasswordUtil.isValidPassword("كلمة"));
+        assertFalse(PasswordUtil.isValidPassword("パスワード"));
     }
 
     // Validation Error Message Tests
@@ -74,22 +83,44 @@ public class PasswordUtilTest {
         assertEquals(PasswordUtil.MESSAGE_EMPTY, PasswordUtil.getValidationError(null));
         assertEquals(PasswordUtil.MESSAGE_EMPTY, PasswordUtil.getValidationError(""));
         assertEquals(PasswordUtil.MESSAGE_EMPTY, PasswordUtil.getValidationError("   "));
-        assertEquals(PasswordUtil.MESSAGE_EMPTY, PasswordUtil.getValidationError("\n\t"));
     }
 
     @Test
     public void getValidationError_containsSpaces_returnsNoSpacesMessage() {
         assertEquals(PasswordUtil.MESSAGE_NO_SPACES, PasswordUtil.getValidationError("k l"));
-        assertEquals(PasswordUtil.MESSAGE_EMPTY, PasswordUtil.getValidationError("   "));
+    }
+
+    @Test
+    public void getValidationError_nonAscii_returnsOnlyAsciiMessage() {
+        assertEquals(PasswordUtil.MESSAGE_ONLY_ASCII, PasswordUtil.getValidationError("password😊"));
+        assertEquals(PasswordUtil.MESSAGE_ONLY_ASCII, PasswordUtil.getValidationError("pássword"));
     }
 
     @Test
     public void getValidationError_validInput_returnsNull() {
         assertNull(PasswordUtil.getValidationError("p"));
         assertNull(PasswordUtil.getValidationError("password123"));
-        assertNull(PasswordUtil.getValidationError("  actualPassword  "));
+        assertNull(PasswordUtil.getValidationError("!@#$%"));
+    }
 
-        assertNull(PasswordUtil.getValidationError("k\\l"));
-        assertNull(PasswordUtil.getValidationError("\\n\\t"));
+    // Strict Validation Tests
+
+    @Test
+    public void isStrictlyValid_whitespaceHandling_returnsFalse() {
+        assertFalse(PasswordUtil.isStrictlyValid("password "));
+        assertFalse(PasswordUtil.isStrictlyValid(" password"));
+        assertFalse(PasswordUtil.isStrictlyValid("\tpassword"));
+    }
+
+    @Test
+    public void isStrictlyValid_nonAsciiInput_returnsFalse() {
+        assertFalse(PasswordUtil.isStrictlyValid("pássword"));
+        assertFalse(PasswordUtil.isStrictlyValid("😊"));
+    }
+
+    @Test
+    public void isStrictlyValid_cleanValidPassword_returnsTrue() {
+        assertTrue(PasswordUtil.isStrictlyValid("password123"));
+        assertTrue(PasswordUtil.isStrictlyValid("Admin#Secure!"));
     }
 }

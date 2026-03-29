@@ -31,7 +31,7 @@ SpyGlass is a desktop app for managing public and secret contacts, optimised for
    ![Ui](images/Ui.png)
 
 7. **Execute Commands:**
-   Type your command in the command box and press **Enter** to execute it. For example, typing `help` and pressing Enter will open the help window.
+  Type your command in the command box and press **Enter** to execute it. For example, typing `help` prints the command manual in the command history panel.
 
    **Try these example commands:**
 
@@ -64,8 +64,8 @@ SpyGlass is a desktop app for managing public and secret contacts, optimised for
 * Parameters can be in any order.<br>
   e.g. if the command specifies `-n NAME -p PHONE_NUMBER`, `-p PHONE_NUMBER -n NAME` is also acceptable.
 
-* Extraneous parameters for commands that do not take in parameters (such as `help`, `list`, `exit` and `clear`) will be ignored.<br>
-  e.g. if the command specifies `help 123`, it will be interpreted as `help`.
+* Extraneous parameters for commands that do not take in parameters (such as `list`, `exit` and `clear`) will be ignored.<br>
+  e.g. if the command specifies `list 123`, it will be interpreted as `list`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -95,11 +95,13 @@ Unrestricted commands are the basic functions of SpyGlass that are available in 
 
 #### Viewing help : `help`
 
-Shows a message explaining how to access the help page.
+Shows a concise command manual in the command history panel.
 
-![help message](images/helpMessage.png)
+Format: `help [COMMAND]`
 
-Format: `help`
+Examples:
+* `help`
+* `help add`
 
 #### Adding a person: `add`
 
@@ -243,7 +245,6 @@ Furthermore, certain edits can cause the SpyGlass to behave in unexpected ways (
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -259,7 +260,7 @@ Action     | Format, Examples
 **List**   | `list`
 **Lock**   | `lock`
 **Unlock** | `unlock PASSWORD`<br> e.g., `unlock mySecurePassword123`
-**Help**   | `help`
+**Help**   | `help [COMMAND]`<br> e.g., `help add`
 
 ## Availability Table for Restricted Commands
 

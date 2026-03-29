@@ -15,7 +15,7 @@ public class SetupCommandTest {
 
     @Test
     public void execute_unlockedMode_success() {
-        CommandResult expectedCommandResult = new CommandResult(MESSAGE_SUCCESS, false, true, false, null);
+        CommandResult expectedCommandResult = new CommandResult(MESSAGE_SUCCESS, true, false);
 
         assertCommandSuccess(new SetupCommand(), model, AppMode.UNLOCKED, expectedCommandResult, expectedModel);
     }

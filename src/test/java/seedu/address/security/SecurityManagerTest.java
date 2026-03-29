@@ -30,7 +30,7 @@ public class SecurityManagerTest {
         SecurityManager securityManager = new SecurityManager(logicStub);
 
         // If a valid password exists, setup is NOT required.
-        assertFalse(securityManager.isAuthenticated());
+        assertTrue(securityManager.isAuthenticated());
     }
 
     @Test
@@ -40,7 +40,7 @@ public class SecurityManagerTest {
         SecurityManager securityManager = new SecurityManager(logicStub);
 
         // Empty string or null should trigger setup requirement.
-        assertTrue(securityManager.isAuthenticated());
+        assertFalse(securityManager.isAuthenticated());
     }
 
     @Test
@@ -50,7 +50,7 @@ public class SecurityManagerTest {
         logicStub.setAddressBookPassword("invalid password");
         SecurityManager securityManager = new SecurityManager(logicStub);
 
-        assertTrue(securityManager.isAuthenticated());
+        assertFalse(securityManager.isAuthenticated());
     }
 
     @Test

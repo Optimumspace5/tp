@@ -25,8 +25,7 @@ class JsonSerializableAddressBook {
             "Address book persons list is missing!";
 
     private final String password;
-    private final List<JsonAdaptedPerson> persons = new ArrayList<>();
-    private final boolean hasPersonsField;
+    private final List<JsonAdaptedPerson> persons;
 
     /**
      * Constructs a {@code JsonSerializableAddressBook} from the combined persons format.
@@ -34,10 +33,7 @@ class JsonSerializableAddressBook {
     @JsonCreator
     public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
                                        @JsonProperty("password") String password) {
-        hasPersonsField = persons != null;
-        if (persons != null) {
-            this.persons.addAll(persons);
-        }
+        this.persons = persons;
         this.password = (password != null) ? password : "";
     }
 
@@ -45,8 +41,8 @@ class JsonSerializableAddressBook {
      * Converts a given {@code ReadOnlyAddressBook} into this class for Jackson use.
      */
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
-        hasPersonsField = true;
-        persons.addAll(source.getPersonList().stream()
+        this.persons = new ArrayList<>();
+        this.persons.addAll(source.getPersonList().stream()
                 .map(JsonAdaptedPerson::new)
                 .collect(Collectors.toList()));
         this.password = source.getPassword();
@@ -58,7 +54,7 @@ class JsonSerializableAddressBook {
      * @throws IllegalValueException if there were any data constraints violated.
      */
     public AddressBook toModelType() throws IllegalValueException {
-        if (!hasPersonsField) {
+        if (persons == null) {
             throw new IllegalValueException(MESSAGE_MISSING_PERSONS);
         }
 

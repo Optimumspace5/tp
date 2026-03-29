@@ -30,12 +30,30 @@ public class ResultHistory extends UiPart<Region> {
 
     public void setFeedbackToUser(String feedbackToUser) {
         requireNonNull(feedbackToUser);
-        log.add(feedbackToUser);
+        appendEntry(formatFeedbackEntry(feedbackToUser));
+    }
+
+    public void setFeedbackToUser(String commandText, String feedbackToUser) {
+        requireNonNull(commandText);
+        requireNonNull(feedbackToUser);
+        appendEntry(formatCommandResultEntry(commandText, feedbackToUser));
+    }
+
+    static String formatFeedbackEntry(String feedbackToUser) {
+        return "> " + feedbackToUser;
+    }
+
+    static String formatCommandResultEntry(String commandText, String feedbackToUser) {
+        return "> " + commandText + "\n" + feedbackToUser;
+    }
+
+    private void appendEntry(String entry) {
+        log.add(entry);
 
         if (resultHistory.getText().isEmpty()) {
-            resultHistory.setText("> " + feedbackToUser);
+            resultHistory.setText(entry);
         } else {
-            resultHistory.appendText("\n\n> " + feedbackToUser);
+            resultHistory.appendText("\n\n" + entry);
         }
     }
 
