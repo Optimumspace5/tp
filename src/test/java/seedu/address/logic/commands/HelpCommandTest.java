@@ -60,6 +60,18 @@ public class HelpCommandTest {
     }
 
     @Test
+    public void execute_helpSpecificCommandToggle_success() throws Exception {
+        CommandResult commandResult = new HelpCommand("toggle")
+                .execute(new CommandContext(model, AppMode.UNLOCKED));
+
+        assertEquals(
+                expectedManual("Toggle a contact's status between Public and Sensitive.",
+                        "toggle INDEX",
+                        "toggle 1"),
+                commandResult.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_visibleManualsInLockedMode_success() throws Exception {
         String[] visibleCommands = { "add", "edit", "delete", "clear", "find", "list", "view", "exit", "help" };
 
@@ -76,7 +88,8 @@ public class HelpCommandTest {
     @Test
     public void execute_visibleManualsInUnlockedMode_success() throws Exception {
         String[] visibleCommands = {
-            "add", "edit", "delete", "clear", "find", "list", "view", "lock", "unlock", "setup", "exit", "help"
+            "add", "edit", "delete", "clear", "find", "list", "view", "toggle",
+            "lock", "unlock", "setup", "exit", "help"
         };
 
         for (String command : visibleCommands) {
@@ -98,7 +111,7 @@ public class HelpCommandTest {
 
     @Test
     public void execute_hiddenManualsInLockedMode_throwsCommandException() {
-        String[] hiddenCommands = { "lock", "unlock", "setup" };
+        String[] hiddenCommands = { "lock", "unlock", "setup", "toggle" };
 
         for (String hiddenCommand : hiddenCommands) {
             assertThrows(CommandException.class,
