@@ -22,7 +22,7 @@ public class SetupCommand extends Command {
     public CommandResult execute(CommandContext context) throws CommandException {
         requireNonNull(context);
 
-        return new CommandResult(MESSAGE_SUCCESS, false, true, false);
+        return new CommandResult(MESSAGE_SUCCESS, true, false);
     }
 
     @Override

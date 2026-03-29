@@ -18,6 +18,6 @@ public class LockCommand extends Command {
         requireNonNull(context);
 
         // Transition to LOCKED mode.
-        return new CommandResult(MESSAGE_SUCCESS, false, false, false, AppMode.LOCKED);
+        return new CommandResult(MESSAGE_SUCCESS, false, false, AppMode.LOCKED);
     }
 }

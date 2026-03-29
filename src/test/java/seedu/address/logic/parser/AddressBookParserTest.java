@@ -81,7 +81,14 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
+        assertEquals(new HelpCommand("add"), parser.parseCommand(HelpCommand.COMMAND_WORD + " add"));
+    }
+
+    @Test
+    public void parseCommand_helpWithTooManyArguments_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
+                -> parser.parseCommand(HelpCommand.COMMAND_WORD + " add now"));
     }
 
     @Test

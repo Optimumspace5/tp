@@ -16,9 +16,6 @@ public class CommandResult {
 
     private final String feedbackToUser;
 
-    /** Help information should be shown to the user. */
-    private final boolean showHelp;
-
     /** The application should exit. */
     private final boolean exit;
 
@@ -34,17 +31,16 @@ public class CommandResult {
     /**
      * Constructs a {@code CommandResult} without requesting a Mode or Index change.
      */
-    public CommandResult(String feedbackToUser, boolean showHelp, boolean showSetup, boolean exit) {
-        this(feedbackToUser, showHelp, showSetup, exit, null, null);
+    public CommandResult(String feedbackToUser, boolean showSetup, boolean exit) {
+        this(feedbackToUser, showSetup, exit, null, null);
     }
 
     /**
      * Constructs a {@code CommandResult} with the requested mode and Index change.
      */
-    public CommandResult(String feedbackToUser, boolean showHelp,
-                         boolean showSetup, boolean exit, AppMode requestedMode, Index selectedIndex) {
+    public CommandResult(String feedbackToUser, boolean showSetup,
+                         boolean exit, AppMode requestedMode, Index selectedIndex) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
-        this.showHelp = showHelp;
         this.exit = exit;
         this.showSetup = showSetup;
         this.requestedMode = requestedMode;
@@ -55,7 +51,7 @@ public class CommandResult {
      * Constructs a {@code CommandResult} that requests the UI to select the given index.
      */
     public CommandResult(String feedbackToUser, Index selectedIndex) {
-        this(feedbackToUser, false, false, false, null, selectedIndex);
+        this(feedbackToUser, false, false, null, selectedIndex);
     }
 
     /**
@@ -63,23 +59,19 @@ public class CommandResult {
      * and other fields set to their default value.
      */
     public CommandResult(String feedbackToUser) {
-        this(feedbackToUser, false, false, false);
+        this(feedbackToUser, false, false);
     }
 
     /**
      * Constructs a {@code CommandResult} with the requested mode change.
      */
-    public CommandResult(String feedbackToUser, boolean showHelp,
-                         boolean showSetup, boolean exit, AppMode requestedMode) {
-        this(feedbackToUser, showHelp, showSetup, exit, requestedMode, null);
+    public CommandResult(String feedbackToUser, boolean showSetup,
+                         boolean exit, AppMode requestedMode) {
+        this(feedbackToUser, showSetup, exit, requestedMode, null);
     }
 
     public String getFeedbackToUser() {
         return feedbackToUser;
-    }
-
-    public boolean isShowHelp() {
-        return showHelp;
     }
 
     public boolean isShowSetup() {
@@ -111,7 +103,6 @@ public class CommandResult {
 
         CommandResult otherCommandResult = (CommandResult) other;
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
-                && showHelp == otherCommandResult.showHelp
                 && showSetup == otherCommandResult.showSetup
                 && exit == otherCommandResult.exit
                 && Objects.equals(requestedMode, otherCommandResult.requestedMode)
@@ -120,14 +111,13 @@ public class CommandResult {
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, showSetup, exit, requestedMode, selectedIndex);
+        return Objects.hash(feedbackToUser, showSetup, exit, requestedMode, selectedIndex);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
-                .add("showHelp", showHelp)
                 .add("showSetup", showSetup)
                 .add("exit", exit)
                 .add("requestedMode", requestedMode)

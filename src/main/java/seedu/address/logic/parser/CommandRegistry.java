@@ -94,7 +94,7 @@ public class CommandRegistry {
 
         // Utility Commands
         register(ExitCommand.COMMAND_WORD, args -> new ExitCommand(), true, true);
-        register(HelpCommand.COMMAND_WORD, args -> new HelpCommand(), true, true);
+        register(HelpCommand.COMMAND_WORD, args -> new HelpCommandParser().parse(args), true, true);
         register(SetupCommand.COMMAND_WORD, args -> new SetupCommand(), false, true);
 
         // Mode Transition Commands

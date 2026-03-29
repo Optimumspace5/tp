@@ -11,6 +11,6 @@ public class ExitCommand extends Command {
 
     @Override
     public CommandResult execute(CommandContext context) {
-        return new CommandResult(MESSAGE_EXIT_ACKNOWLEDGEMENT, false, false, true);
+        return new CommandResult(MESSAGE_EXIT_ACKNOWLEDGEMENT, false, true);
     }
 }

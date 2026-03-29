@@ -48,7 +48,7 @@ public class UnlockCommand extends Command {
             throw new CommandException(MESSAGE_UNKNOWN_COMMAND);
         }
 
-        return new CommandResult(MESSAGE_SUCCESS, false, false, false, AppMode.UNLOCKED);
+        return new CommandResult(MESSAGE_SUCCESS, false, false, AppMode.UNLOCKED);
     }
 
     @Override
