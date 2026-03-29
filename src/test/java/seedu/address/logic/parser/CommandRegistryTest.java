@@ -11,6 +11,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.LockCommand;
+import seedu.address.logic.commands.ToggleCommand;
 import seedu.address.logic.commands.UnlockCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -55,6 +56,17 @@ public class CommandRegistryTest {
         // UnlockCommand is allowed in Unlocked mode to provide already unlocked feedback
         Command command = registry.parse(UnlockCommand.COMMAND_WORD, "anyPassword", AppMode.UNLOCKED);
         assertTrue(command instanceof UnlockCommand);
+    }
+
+    @Test
+    public void parse_toggleInLockedMode_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () ->
+                registry.parse(ToggleCommand.COMMAND_WORD, " 1", AppMode.LOCKED));
+    }
+
+    @Test
+    public void parse_toggleInUnlockedMode_success() throws Exception {
+        assertTrue(registry.parse(ToggleCommand.COMMAND_WORD, " 1", AppMode.UNLOCKED) instanceof ToggleCommand);
     }
 
     @Test
