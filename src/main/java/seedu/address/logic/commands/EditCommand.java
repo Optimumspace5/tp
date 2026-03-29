@@ -18,6 +18,7 @@ import java.util.Set;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -25,6 +26,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -50,6 +52,7 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited Person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -70,7 +73,8 @@ public class EditCommand extends Command {
     public CommandResult execute(CommandContext context) throws CommandException {
         requireNonNull(context);
         Model model = context.getModel();
-        List<Person> lastShownList = model.getFilteredPersonList(context.getAppMode());
+        AppMode appMode = context.getAppMode();
+        List<Person> lastShownList = model.getFilteredPersonList(appMode);
 
         if (index.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
@@ -80,12 +84,16 @@ public class EditCommand extends Command {
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
         Person personToOverride = findPersonToOverride(model, personToEdit, editedPerson);
 
-        if (personToOverride != null) {
-            model.deletePerson(personToOverride, context.getAppMode());
+        if (personToOverride != null && !shouldOverrideDuplicate(appMode, personToOverride)) {
+            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.setPerson(personToEdit, editedPerson, context.getAppMode());
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, context.getAppMode());
+        if (personToOverride != null) {
+            model.deletePerson(personToOverride, appMode);
+        }
+
+        model.setPerson(personToEdit, editedPerson, appMode);
+        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 
@@ -111,6 +119,10 @@ public class EditCommand extends Command {
                 .filter(person -> !person.equals(personToEdit) && person.isSamePerson(editedPerson))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static boolean shouldOverrideDuplicate(AppMode appMode, Person personToOverride) {
+        return appMode == AppMode.LOCKED && personToOverride.getStatus() == PersonStatus.UNLOCKED;
     }
 
     @Override

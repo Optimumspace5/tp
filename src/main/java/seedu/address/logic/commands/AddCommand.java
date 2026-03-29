@@ -30,6 +30,7 @@ import seedu.address.model.tag.Tag;
 public class AddCommand extends Command {
 
     public static final String COMMAND_WORD = "add";
+    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a person to the address book. "
             + "Parameters: "
@@ -81,15 +82,20 @@ public class AddCommand extends Command {
     public CommandResult execute(CommandContext context) throws CommandException {
         requireNonNull(context);
         Model model = context.getModel();
+        AppMode appMode = context.getAppMode();
 
-        Person personToAdd = createPersonForMode(context.getAppMode());
+        Person personToAdd = createPersonForMode(appMode);
         Person personToOverride = findSamePerson(model, personToAdd);
 
-        if (personToOverride != null) {
-            model.deletePerson(personToOverride, context.getAppMode());
+        if (personToOverride != null && !shouldOverrideDuplicate(appMode, personToOverride)) {
+            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.addPerson(personToAdd, context.getAppMode());
+        if (personToOverride != null) {
+            model.deletePerson(personToOverride, appMode);
+        }
+
+        model.addPerson(personToAdd, appMode);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
     }
 
@@ -106,6 +112,10 @@ public class AddCommand extends Command {
                 .filter(target::isSamePerson)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static boolean shouldOverrideDuplicate(AppMode appMode, Person personToOverride) {
+        return appMode == AppMode.LOCKED && personToOverride.getStatus() == PersonStatus.UNLOCKED;
     }
 
     @Override

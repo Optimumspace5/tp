@@ -19,6 +19,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -49,17 +50,30 @@ public class AddCommandTest {
     }
 
     @Test
-    public void execute_duplicatePerson_replacesExistingPerson() throws Exception {
+    public void execute_duplicatePersonInUnlockedMode_throwsCommandException() {
         Person existingPerson = new PersonBuilder().build();
-        Person expectedPerson = new PersonBuilder(existingPerson).withStatus(PersonStatus.UNLOCKED).build();
         ModelStubWithExistingPerson modelStub = new ModelStubWithExistingPerson(existingPerson);
 
         CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
-        CommandResult commandResult = new AddCommand(existingPerson).execute(context);
+
+        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () ->
+            new AddCommand(existingPerson).execute(context));
+        assertEquals(Arrays.asList(existingPerson), modelStub.persons);
+        assertTrue(modelStub.getDeletedPerson() == null);
+    }
+
+    @Test
+    public void execute_unlockedDuplicateInLockedMode_replacesExistingPerson() throws Exception {
+        Person existingUnlockedPerson = new PersonBuilder().withStatus(PersonStatus.UNLOCKED).build();
+        Person expectedPerson = new PersonBuilder(existingUnlockedPerson).withStatus(PersonStatus.LOCKED).build();
+        ModelStubWithExistingPerson modelStub = new ModelStubWithExistingPerson(existingUnlockedPerson);
+
+        CommandContext context = new CommandContext(modelStub, AppMode.LOCKED);
+        CommandResult commandResult = new AddCommand(existingUnlockedPerson).execute(context);
 
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
                 commandResult.getFeedbackToUser());
-        assertEquals(existingPerson, modelStub.getDeletedPerson());
+        assertEquals(existingUnlockedPerson, modelStub.getDeletedPerson());
         assertEquals(Arrays.asList(expectedPerson), modelStub.persons);
     }
 
@@ -183,7 +197,6 @@ public class AddCommandTest {
         public void updateFilteredPersonList(Predicate<Person> predicate, AppMode appMode) {
             throw new AssertionError("This method should not be called.");
         }
-
     }
 
     /**
@@ -210,7 +223,7 @@ public class AddCommandTest {
     }
 
     /**
-     * A Model stub that starts with one existing person and supports override.
+     * A Model stub that starts with one existing person and records duplicate-handling effects.
      */
     private class ModelStubWithExistingPerson extends ModelStub {
         final ArrayList<Person> persons = new ArrayList<>();

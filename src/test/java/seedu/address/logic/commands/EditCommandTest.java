@@ -21,10 +21,12 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonStatus;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -107,20 +109,43 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_duplicatePersonUnfilteredList_overridesSuccess() {
+    public void execute_duplicatePersonUnfilteredList_throwsCommandException() {
         Person firstPerson = model.getFilteredPersonList(TEST_MODE).get(INDEX_FIRST_PERSON.getZeroBased());
-        Person secondPerson = model.getFilteredPersonList(TEST_MODE).get(INDEX_SECOND_PERSON.getZeroBased());
         EditCommand.EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(firstPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, descriptor);
 
+        assertCommandFailure(editCommand, model, TEST_MODE, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_unlockedDuplicateInLockedMode_overridesSuccess() {
+        Person personToEdit = new PersonBuilder().withName("Locked Person").build();
+        Person hiddenUnlockedDuplicate = new PersonBuilder()
+                .withName("Unlocked Duplicate")
+                .withPhone("81234567")
+                .withEmail("duplicate@example.com")
+                .withAddress("123 Duplicate Street")
+                .withStatus(PersonStatus.UNLOCKED)
+                .build();
+        Person editedPerson = new PersonBuilder(hiddenUnlockedDuplicate).withStatus(PersonStatus.LOCKED).build();
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(personToEdit);
+        addressBook.addPerson(hiddenUnlockedDuplicate);
+        Model customModel = new ModelManager(addressBook, new UserPrefs());
+
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder(hiddenUnlockedDuplicate).build());
+
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
-                Messages.format(firstPerson));
+                Messages.format(editedPerson));
 
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.deletePerson(firstPerson, TEST_MODE);
-        expectedModel.setPerson(secondPerson, firstPerson, TEST_MODE);
+        Model expectedModel = new ModelManager(customModel.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(hiddenUnlockedDuplicate, TEST_MODE);
+        expectedModel.setPerson(personToEdit, editedPerson, TEST_MODE);
 
-        assertCommandSuccess(editCommand, model, TEST_MODE, new CommandResult(expectedMessage), expectedModel);
+        assertCommandSuccess(editCommand, customModel, TEST_MODE,
+                new CommandResult(expectedMessage), expectedModel);
     }
 
     @Test
