@@ -43,7 +43,7 @@ public class ToggleCommandTest {
         ToggleCommand toggleCommand = new ToggleCommand(INDEX_FIRST_PERSON);
 
         String expectedMessage = String.format(ToggleCommand.MESSAGE_TOGGLE_PERSON_SUCCESS,
-                Messages.format(toggledPerson));
+                toggledPerson.getName(), toggledPerson.getStatus());
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(personToToggle, toggledPerson, TEST_MODE);
@@ -63,7 +63,7 @@ public class ToggleCommandTest {
         ToggleCommand toggleCommand = new ToggleCommand(INDEX_FIRST_PERSON);
 
         String expectedMessage = String.format(ToggleCommand.MESSAGE_TOGGLE_PERSON_SUCCESS,
-                Messages.format(toggledPerson));
+                toggledPerson.getName(), toggledPerson.getStatus());
 
         Model expectedModel = new ModelManager(customModel.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(unlockedPerson, toggledPerson, TEST_MODE);
@@ -90,7 +90,7 @@ public class ToggleCommandTest {
         ToggleCommand toggleCommand = new ToggleCommand(INDEX_FIRST_PERSON);
 
         String expectedMessage = String.format(ToggleCommand.MESSAGE_TOGGLE_PERSON_SUCCESS,
-                Messages.format(toggledPerson));
+                toggledPerson.getName(), toggledPerson.getStatus());
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(personToToggle, toggledPerson, TEST_MODE);

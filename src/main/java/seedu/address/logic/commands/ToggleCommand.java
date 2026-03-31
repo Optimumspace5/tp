@@ -26,7 +26,7 @@ public class ToggleCommand extends Command {
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1";
 
-    public static final String MESSAGE_TOGGLE_PERSON_SUCCESS = "Updated person status: %1$s";
+    public static final String MESSAGE_TOGGLE_PERSON_SUCCESS = "Updated %1$s to %2$s contact.";
 
     private final Index targetIndex;
 
@@ -50,7 +50,8 @@ public class ToggleCommand extends Command {
         model.setPerson(personToToggle, toggledPerson, context.getAppMode());
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, context.getAppMode());
 
-        return new CommandResult(String.format(MESSAGE_TOGGLE_PERSON_SUCCESS, Messages.format(toggledPerson)));
+        return new CommandResult(String.format(MESSAGE_TOGGLE_PERSON_SUCCESS,
+                toggledPerson.getName(), toggledPerson.getStatus()));
     }
 
     private static Person createToggledPerson(Person person) {
