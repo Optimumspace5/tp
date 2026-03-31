@@ -114,7 +114,7 @@ public class EditCommandTest {
         EditCommand.EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(firstPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, descriptor);
 
-        assertCommandFailure(editCommand, model, TEST_MODE, EditCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(editCommand, model, TEST_MODE, CommandUtil.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test

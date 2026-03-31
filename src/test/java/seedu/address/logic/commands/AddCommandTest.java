@@ -56,7 +56,7 @@ public class AddCommandTest {
 
         CommandContext context = new CommandContext(modelStub, AppMode.UNLOCKED);
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () ->
+        assertThrows(CommandException.class, CommandUtil.MESSAGE_DUPLICATE_PERSON, () ->
             new AddCommand(existingPerson).execute(context));
         assertEquals(Arrays.asList(existingPerson), modelStub.persons);
         assertTrue(modelStub.getDeletedPerson() == null);

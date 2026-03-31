@@ -47,7 +47,7 @@ public class AddCommandIntegrationTest {
         Person personToAdd = new PersonBuilder(existingPerson).build();
 
         assertCommandFailure(new AddCommand(personToAdd), model, AppMode.UNLOCKED,
-                AddCommand.MESSAGE_DUPLICATE_PERSON);
+                CommandUtil.MESSAGE_DUPLICATE_PERSON);
     }
 
     @Test

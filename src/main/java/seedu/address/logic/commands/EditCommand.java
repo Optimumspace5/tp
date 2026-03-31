@@ -26,7 +26,6 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
-import seedu.address.model.person.PersonStatus;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -52,7 +51,6 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited Person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -82,15 +80,8 @@ public class EditCommand extends Command {
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
-        Person personToOverride = findPersonToOverride(model, personToEdit, editedPerson);
 
-        if (personToOverride != null && !shouldOverrideDuplicate(appMode, personToOverride)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
-        }
-
-        if (personToOverride != null) {
-            model.deletePerson(personToOverride, appMode);
-        }
+        CommandUtil.resolveDuplicateConflict(model, editedPerson, appMode, personToEdit);
 
         model.setPerson(personToEdit, editedPerson, appMode);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
@@ -112,17 +103,6 @@ public class EditCommand extends Command {
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
                 personToEdit.getStatus());
-    }
-
-    private static Person findPersonToOverride(Model model, Person personToEdit, Person editedPerson) {
-        return model.getPersonList().stream()
-                .filter(person -> !person.equals(personToEdit) && person.isSamePerson(editedPerson))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private static boolean shouldOverrideDuplicate(AppMode appMode, Person personToOverride) {
-        return appMode == AppMode.LOCKED && personToOverride.getStatus() == PersonStatus.UNLOCKED;
     }
 
     @Override
