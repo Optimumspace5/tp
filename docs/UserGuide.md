@@ -102,6 +102,7 @@ Format: `help [COMMAND]`
 Examples:
 * `help`
 * `help add`
+* `help toggle`
 
 #### Adding a person: `add`
 
@@ -215,6 +216,22 @@ Format: `unlock PASSWORD`
 Examples:
 * `unlock mySecurePassword123` : Unlocks the app with the provided password.
 
+#### Toggling a contact status : `toggle`
+
+Toggles the specified contact between `Public` and `Sensitive`.
+
+Format: `toggle INDEX`
+
+* Toggles the contact at the specified `INDEX`.
+* The index refers to the index number shown in the displayed person list.
+* The index **must be a positive integer** `1, 2, 3, ...`
+* This command is only available in **Unlocked Mode**.
+* A contact toggled to `Sensitive` will no longer appear in Locked Mode.
+* A contact toggled to `Public` will appear in Locked Mode.
+
+Examples:
+* `toggle 1` : Toggles the 1st contact's status.
+
 ### Saving the data
 
 SpyGlass data are saved in the hard disk automatically after any command that changes the data. There is no need to save manually.
@@ -259,6 +276,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Lock**   | `lock`
+**Toggle** | `toggle INDEX`<br> e.g., `toggle 1`
 **Unlock** | `unlock PASSWORD`<br> e.g., `unlock mySecurePassword123`
 **Help**   | `help [COMMAND]`<br> e.g., `help add`
 
@@ -268,3 +286,4 @@ Action     | Format, Examples
 |---------|--------------|
 | `unlock` | Locked Mode |
 | `lock`   | Unlocked Mode |
+| `toggle` | Unlocked Mode |

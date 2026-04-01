@@ -28,8 +28,8 @@ public class HelpCommand extends Command {
     public static final String GENERAL_MANUAL_UNLOCKED = "Welcome to Spyglass. "
         + "Below are the commands available in this application.\n"
         + "Usage: help [COMMAND] to view more details\n"
-        + "Commands: add, edit, delete, clear, find, list, view, lock, unlock, setup, exit, help\n"
-        + "Example: help help | help lock";
+        + "Commands: add, edit, delete, clear, find, list, view, toggle, lock, unlock, setup, exit, help\n"
+        + "Example: help help | help toggle";
 
     private final String targetCommand;
 
@@ -93,6 +93,11 @@ public class HelpCommand extends Command {
                 "View a contact's details by index.",
                     "view INDEX",
                     "view 1"));
+        case ToggleCommand.COMMAND_WORD:
+            return new CommandResult(buildManual(
+                "Toggle a contact's status between Public and Sensitive.",
+                    "toggle INDEX",
+                    "toggle 1"));
         case LockCommand.COMMAND_WORD:
             return new CommandResult(buildManual(
                 "Switch to locked mode.",
@@ -117,7 +122,7 @@ public class HelpCommand extends Command {
             return new CommandResult(buildManual(
                 "Show command manuals.",
                     "help [COMMAND]",
-                    "help add\nhelp edit"));
+                    "help add\nhelp toggle"));
         default:
             throw new CommandException(String.format(MESSAGE_UNKNOWN_MANUAL, targetCommand));
         }
@@ -138,7 +143,8 @@ public class HelpCommand extends Command {
 
         return commandWord.equals(LockCommand.COMMAND_WORD)
                 || commandWord.equals(UnlockCommand.COMMAND_WORD)
-                || commandWord.equals(SetupCommand.COMMAND_WORD);
+                || commandWord.equals(SetupCommand.COMMAND_WORD)
+                || commandWord.equals(ToggleCommand.COMMAND_WORD);
     }
 
     private static String buildManual(String description, String usage, String examples) {
