@@ -7,6 +7,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
@@ -35,9 +36,11 @@ public class AddCommandIntegrationTest {
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(validPerson, AppMode.LOCKED);
+        Index expectedSelectedIndex = Index.fromOneBased(expectedModel.getFilteredPersonList(AppMode.LOCKED).size());
 
-        assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+        assertCommandSuccess(new AddCommand(validPerson), model, AppMode.LOCKED,
+            new CommandResult(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                expectedSelectedIndex),
                 expectedModel);
     }
 
@@ -65,7 +68,8 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(expectedPerson, AppMode.LOCKED);
 
         String expectedMessage = String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson));
+        Index expectedSelectedIndex = Index.fromOneBased(expectedModel.getFilteredPersonList(AppMode.LOCKED).size());
         assertCommandSuccess(new AddCommand(personToAdd), model, AppMode.LOCKED,
-                new CommandResult(expectedMessage), expectedModel);
+            new CommandResult(expectedMessage, expectedSelectedIndex), expectedModel);
     }
 }

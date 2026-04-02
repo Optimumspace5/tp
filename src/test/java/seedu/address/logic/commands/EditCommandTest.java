@@ -54,8 +54,11 @@ public class EditCommandTest {
                 new ModelManager(getTypicalAddressBook(), new UserPrefs()).getAddressBook(),
                 new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList(TEST_MODE).get(0), editedPerson, TEST_MODE);
+        Index expectedSelectedIndex = Index.fromZeroBased(expectedModel
+                .getFilteredPersonList(TEST_MODE).indexOf(editedPerson));
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, TEST_MODE,
+                new CommandResult(expectedMessage, expectedSelectedIndex), expectedModel);
     }
 
     @Test
@@ -75,8 +78,11 @@ public class EditCommandTest {
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(lastPerson, editedPerson, TEST_MODE);
+        Index expectedSelectedIndex = Index.fromZeroBased(expectedModel
+                .getFilteredPersonList(TEST_MODE).indexOf(editedPerson));
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, TEST_MODE,
+                new CommandResult(expectedMessage, expectedSelectedIndex), expectedModel);
     }
 
     @Test
@@ -87,8 +93,11 @@ public class EditCommandTest {
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Index expectedSelectedIndex = Index.fromZeroBased(expectedModel
+                .getFilteredPersonList(TEST_MODE).indexOf(editedPerson));
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, TEST_MODE,
+                new CommandResult(expectedMessage, expectedSelectedIndex), expectedModel);
     }
 
     @Test
@@ -104,8 +113,11 @@ public class EditCommandTest {
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList(TEST_MODE).get(0), editedPerson, TEST_MODE);
+        Index expectedSelectedIndex = Index.fromZeroBased(expectedModel
+                .getFilteredPersonList(TEST_MODE).indexOf(editedPerson));
 
-        assertCommandSuccess(editCommand, model, TEST_MODE, new CommandResult(expectedMessage), expectedModel);
+        assertCommandSuccess(editCommand, model, TEST_MODE,
+                new CommandResult(expectedMessage, expectedSelectedIndex), expectedModel);
     }
 
     @Test
@@ -143,9 +155,11 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(customModel.getAddressBook(), new UserPrefs());
         expectedModel.deletePerson(hiddenUnlockedDuplicate, TEST_MODE);
         expectedModel.setPerson(personToEdit, editedPerson, TEST_MODE);
+        Index expectedSelectedIndex = Index.fromZeroBased(expectedModel
+                .getFilteredPersonList(TEST_MODE).indexOf(editedPerson));
 
         assertCommandSuccess(editCommand, customModel, TEST_MODE,
-                new CommandResult(expectedMessage), expectedModel);
+                new CommandResult(expectedMessage, expectedSelectedIndex), expectedModel);
     }
 
     @Test

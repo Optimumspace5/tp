@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -47,6 +48,8 @@ public class AddCommandTest {
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(Arrays.asList(expectedPerson), modelStub.persons);
+        assertTrue(commandResult.getSelectedIndex().isPresent());
+        assertEquals(Index.fromOneBased(1), commandResult.getSelectedIndex().get());
     }
 
     @Test
@@ -75,6 +78,8 @@ public class AddCommandTest {
                 commandResult.getFeedbackToUser());
         assertEquals(existingUnlockedPerson, modelStub.getDeletedPerson());
         assertEquals(Arrays.asList(expectedPerson), modelStub.persons);
+        assertTrue(commandResult.getSelectedIndex().isPresent());
+        assertEquals(Index.fromOneBased(1), commandResult.getSelectedIndex().get());
     }
 
     @Test
@@ -217,6 +222,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public ObservableList<Person> getFilteredPersonList(AppMode appMode) {
+            return FXCollections.observableArrayList(persons);
+        }
+
+        @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
         }
@@ -250,6 +260,11 @@ public class AddCommandTest {
         public void addPerson(Person person, AppMode appMode) {
             requireNonNull(person);
             persons.add(person);
+        }
+
+        @Override
+        public ObservableList<Person> getFilteredPersonList(AppMode appMode) {
+            return FXCollections.observableArrayList(persons);
         }
 
         @Override

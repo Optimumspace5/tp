@@ -9,8 +9,10 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
@@ -87,7 +89,16 @@ public class AddCommand extends Command {
         CommandUtil.resolveDuplicateConflict(model, personToAdd, appMode, null);
 
         model.addPerson(personToAdd, appMode);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
+
+        List<Person> lastShownList = model.getFilteredPersonList(appMode);
+        int selectedIndex = lastShownList.indexOf(personToAdd);
+
+        if (selectedIndex < 0) {
+            return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
+        }
+
+        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)),
+                Index.fromZeroBased(selectedIndex));
     }
 
     private Person createPersonForMode(AppMode appMode) {
