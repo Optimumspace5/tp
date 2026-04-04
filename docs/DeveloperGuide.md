@@ -107,51 +107,97 @@ How the startup check works:
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
-Here's a (partial) class diagram of the `Logic` component:
+The `Logic` component is responsible for:
 
-<puml src="diagrams/LogicClassDiagram.puml" width="550"/>
+- receiving raw command text from the UI
+- parsing that text into concrete `Command` objects
+- enforcing mode-based command availability via `CommandRegistry`
+- executing commands against the current `Model` using a `CommandContext`
+- applying requested mode transitions through `AppModeManager`
+- saving the address book through `Storage` after each command that completes without throwing
+- returning a `CommandResult` to the UI so that the UI can handle follow-up actions such as
+  selecting a person, showing setup, or exiting the application
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+Here is a partial class diagram of the `Logic` component:
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+<puml src="diagrams/LogicClassDiagram.puml" width="650"/>
 
-<box type="info" seamless>
+The sequence diagram below illustrates the interactions within the `Logic` component for
+`execute("delete 1")`, assuming the provided index is valid.
 
-**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X) but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
-</box>
+<puml src="diagrams/DeleteSequenceDiagram.puml"
+      alt="Interactions inside the Logic component for the delete command" />
 
-#### Unlock Command Example
+#### Unlock command example
 
-The sequence diagram below illustrates the interactions within the `Logic` component for a state-changing command, taking `execute("unlock myPassword123")` API call as an example.
+The next sequence diagram shows how a mode-changing command flows through the same pipeline, using
+`execute("unlock myPassword123")` as the example and assuming the application is currently in
+locked mode.
 
-<puml src="diagrams/UnlockSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `unlock` Command" />
+<puml src="diagrams/UnlockSequenceDiagram.puml"
+      alt="Interactions inside the Logic component for the unlock command" />
 
-This diagram shows how the `UnlockCommand` validates a password against the stored credentials in the `Model` and transitions the application to the `UNLOCKED` state upon successful authentication.
+This diagram highlights an important design decision: `UnlockCommand` does not directly mutate the
+application mode. Instead, it validates the password and returns a `CommandResult` that requests
+`AppMode.UNLOCKED`. `LogicManager` is responsible for applying the transition through
+`AppModeManager`, refreshing the filtered list for the new mode, and persisting the address book.
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, it is passed to an `AddressBookParser` object which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command communicates with the **`Model`** when it is executed (e.g., to delete a person).
-    * **App Mode Management:** `Logic` is also responsible for managing state transitions; it passes the current `AppMode` (Locked or Unlocked) down to the `Model` for execution.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned back from `Logic`.
+1. `LogicManager#execute(...)` receives the raw command text from the UI and logs it.
+1. `LogicManager` forwards the raw text to `AddressBookParser`.
+1. `AddressBookParser` trims the input, splits it into `commandWord` and `arguments` using
+   `BASIC_COMMAND_FORMAT`, then queries the current `AppMode` through the `Supplier<AppMode>`
+   provided by `LogicManager`.
+1. `AddressBookParser` delegates mode-aware command routing to `CommandRegistry`.
+1. `CommandRegistry` checks whether the command is registered and allowed in the current mode.
+   If either check fails, it throws a generic unknown-command `ParseException`.
+1. If the command requires structured argument parsing, `CommandRegistry` delegates to a concrete
+   parser such as `AddCommandParser`, `DeleteCommandParser`, `EditCommandParser`,
+   `FindCommandParser`, `HelpCommandParser`, `ToggleCommandParser`, `UnlockCommandParser`,
+   or `ViewCommandParser`.
+1. Commands that do not require their own parser, such as `clear`, `list`, `lock`, `exit`,
+   and `setup`, are instantiated directly by `CommandRegistry`.
+1. After parsing, `LogicManager` creates a `CommandContext`, which packages the current `Model`
+   and `AppMode` at execution time.
+1. The parsed command executes using that `CommandContext`.
+   This avoids stale-state issues where a command could be parsed under one mode but executed
+   after the application has already transitioned to another.
+1. The command returns a `CommandResult`.
+   In addition to user-facing feedback, `CommandResult` can request follow-up UI actions such as:
+   - selecting a person by index
+   - opening the setup flow
+   - exiting the application
+   - transitioning to a different `AppMode`
+1. If `CommandResult` requests a mode change, `LogicManager` updates `AppModeManager`
+   and refreshes the filtered list in `Model` for the requested mode.
+1. `LogicManager` saves the current address book through `Storage`.
+   If saving fails, `AccessDeniedException` and `IOException` are wrapped and surfaced as
+   `CommandException`.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+Concrete command classes encapsulate feature-specific behaviour after parsing. For example,
+`AddCommand`, `DeleteCommand`, `ToggleCommand`, and `ViewCommand` obtain the current `Model`
+and `AppMode` from `CommandContext` before mutating or querying the filtered list.
+Commands then use `CommandResult` to communicate follow-up actions:
+`AddCommand` and `ViewCommand` can request UI selection through `selectedIndex`,
+`SetupCommand` uses `showSetup`, `ExitCommand` uses `exit`, and `LockCommand` /
+`UnlockCommand` request mode changes through `requestedMode`.
 
-<puml src="diagrams/ParserClasses.puml" width="600"/>
+The parser-related classes used by the `Logic` component are shown below:
 
-How the parsing works:
+<puml src="diagrams/ParserClasses.puml" width="700"/>
 
-- When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name e.g., `AddCommandParser`) which uses the other classes shown above to parse the user command and create a `XYZCommand` object (e.g., `AddCommand`) which the `AddressBookParser` returns back as a `Command` object.
-- All `XYZCommandParser` classes (e.g., `AddCommandParser`, `DeleteCommandParser`, ...) inherit from the `Parser` interface so that they can be treated similarly where possible e.g, during testing.
+How the parsing support classes work:
 
-### Model component
-
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
-
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+- All concrete parsers implement the `Parser<T>` interface.
+- `AddressBookParser` is intentionally lightweight: it only performs the initial split of raw user
+  input before handing mode-aware routing to `CommandRegistry`.
+- `CommandRegistry` centralizes command registration and authorization, which keeps parser selection
+  logic and mode rules out of `AddressBookParser`.
+- `ArgumentTokenizer`, `ArgumentMultimap`, `ParserUtil`, `CliSyntax`, and `Prefix` are reused by
+  parsers that need structured argument extraction and validation.
 
 The `Model` component,
 
