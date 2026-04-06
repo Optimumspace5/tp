@@ -89,21 +89,25 @@ The `UI` component,
 
 **API** : [`Security.java`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/security/Security.java)
 
-The `Security` component is responsible for the application's integrity check upon startup.
+Here's a class diagram of the `Security` component:
 
-- **Integrity Check:** Verifies if the `password` field in the storage file is present and contains valid characters (not just empty or whitespace).
-- **Startup Logic:** Returns a status to `Main` indicating whether the application should proceed to the Password Setup screen or the standard Locked Mode.
-- **Note:** It does *not* handle runtime password verification for restricted commands; that is delegated to the `Logic` and `Model` components.
+<puml src="diagrams/SecurityClassDiagram.puml" width="300"/>
+
+The `Security` component is responsible for the application's integrity check upon startup and handling password authentication state.
+
+- **Integrity Check:** Verifies if the `password` field in the storage file is present and contains valid characters via `isAuthenticated()`.
+- **Startup Logic:** Returns a boolean value indicating whether the application should transition to the initial Setup Panel.
+- **Password Setup:** Validates the user's plain-text input using `PasswordUtil` and delegates to the `Logic` component to securely save the password state.
 
 The sequence diagram below illustrates the interactions during the startup phase, showing how the `Security` component determines the initial UI state.
 
 <puml src="diagrams/SecurityStartupSequenceDiagram.puml" alt="Interactions during the startup integrity check" />
 
 How the startup check works:
-1. `MainApp` calls `Security#getStartupStatus()`.
-2. `Security` queries `Storage` for the current password configuration.
-3. Based on the result (valid password vs. empty/missing), `Security` returns a status code.
-4. `MainApp` then initializes either the `MainWindow` or the `PasswordSetupWindow` based on that status.
+1. `MainWindow` asks `Security` if the app is configured via `isAuthenticated()` during its initialization phase (`fillInnerParts()`).
+2. `Security` queries `Logic` (which in turn queries `Model`) for the stored password state.
+3. Based on the result (valid password vs. empty/missing), `Security` returns a boolean back to `MainWindow`.
+4. If the application is not authenticated, `MainWindow` then invokes `handleSetup()` to load the new `SetupPanel` for the user.
 
 ### Logic component
 
