@@ -127,8 +127,7 @@ Here is a partial class diagram of the `Logic` component:
 The sequence diagram below illustrates the interactions within the `Logic` component for
 `execute("delete 1")`, assuming the provided index is valid.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml"
-      alt="Interactions inside the Logic component for the delete command" />
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions inside the Logic component for the delete command" />
 
 #### Unlock command example
 
@@ -136,8 +135,7 @@ The next sequence diagram shows how a mode-changing command flows through the sa
 `execute("unlock myPassword123")` as the example and assuming the application is currently in
 locked mode.
 
-<puml src="diagrams/UnlockSequenceDiagram.puml"
-      alt="Interactions inside the Logic component for the unlock command" />
+<puml src="diagrams/UnlockSequenceDiagram.puml" alt="Interactions inside the Logic component for the unlock command" />
 
 This diagram highlights an important design decision: `UnlockCommand` does not directly mutate the
 application mode. Instead, it validates the password and returns a `CommandResult` that requests
@@ -166,11 +164,9 @@ How the `Logic` component works:
    This avoids stale-state issues where a command could be parsed under one mode but executed
    after the application has already transitioned to another.
 1. The command returns a `CommandResult`.
-   In addition to user-facing feedback, `CommandResult` can request follow-up UI actions such as:
-   - selecting a person by index
-   - opening the setup flow
-   - exiting the application
-   - transitioning to a different `AppMode`
+   In addition to user-facing feedback, `CommandResult` can request follow-up UI actions such as
+   selecting a person by index, opening the setup flow, exiting the application, or transitioning
+   to a different `AppMode`.
 1. If `CommandResult` requests a mode change, `LogicManager` updates `AppModeManager`
    and refreshes the filtered list in `Model` for the requested mode.
 1. `LogicManager` saves the current address book through `Storage`.
@@ -181,7 +177,7 @@ Concrete command classes encapsulate feature-specific behaviour after parsing. F
 `AddCommand`, `DeleteCommand`, `ToggleCommand`, and `ViewCommand` obtain the current `Model`
 and `AppMode` from `CommandContext` before mutating or querying the filtered list.
 Commands then use `CommandResult` to communicate follow-up actions:
-`AddCommand` and `ViewCommand` can request UI selection through `selectedIndex`,
+`AddCommand`, `EditCommand`, and `ViewCommand` can request UI selection through `selectedIndex`,
 `SetupCommand` uses `showSetup`, `ExitCommand` uses `exit`, and `LockCommand` /
 `UnlockCommand` request mode changes through `requestedMode`.
 
@@ -198,6 +194,8 @@ How the parsing support classes work:
   logic and mode rules out of `AddressBookParser`.
 - `ArgumentTokenizer`, `ArgumentMultimap`, `ParserUtil`, `CliSyntax`, and `Prefix` are reused by
   parsers that need structured argument extraction and validation.
+
+### Model component
 
 The `Model` component,
 
@@ -231,6 +229,146 @@ The `Storage` component,
 Classes used by multiple components are in the `seedu.address.commons` package.
 
 ---
+
+## **Implementation**
+
+This section describes some noteworthy details on how selected features are implemented.
+
+### Lock/Unlock mode switching
+
+This subsection describes how SpyGlass switches between **Locked** and **Unlocked** mode.
+It focuses on mode transitions and UI behaviour only.
+Password setup and password persistence are documented separately.
+
+#### Implementation
+
+The lock/unlock mechanism is facilitated primarily by `AppModeManager`, `CommandResult`,
+`LogicManager`, `ModelManager`, and `MainWindow`.
+
+Unlike an implementation that swaps between two separate databases, SpyGlass keeps a single
+combined `AddressBook` in memory and exposes different views of that data depending on the
+current `AppMode`.
+
+The relevant responsibilities are:
+
+- `LockCommand#execute(CommandContext)` returns a `CommandResult` requesting `AppMode.LOCKED`.
+- `UnlockCommand#execute(CommandContext)` validates the password against `Model` and returns a
+  `CommandResult` requesting `AppMode.UNLOCKED` when validation succeeds.
+- `LogicManager#execute(String)` applies the requested mode change through `AppModeManager`,
+  refreshes the filtered list for the new mode, and persists the address book through `Storage`.
+- `ModelManager#getFilteredPersonList(AppMode)` and
+  `ModelManager#updateFilteredPersonList(Predicate<Person>, AppMode)` expose the correct mode-based
+  view of the same underlying address book.
+- `MainWindow#updateUi(AppMode)` refreshes the visible UI after a mode change by updating the
+  application title, refreshing the person list, clearing the selected person details, and toggling
+  restricted fields such as the status label in the detail panel.
+
+The following state diagram summarizes the two application modes and their visible behaviour:
+
+<puml src="diagrams/LockUnlockStateDiagram.puml" width="650" />
+
+A few implementation details are worth noting:
+
+- The current mode is stored centrally in `AppModeManager`, not inside individual commands.
+- `LockCommand` and `UnlockCommand` do not directly mutate global application state.
+  They only return a `CommandResult` that requests a mode transition.
+- `LogicManager` is responsible for applying the mode transition and refreshing the filtered list.
+- `ModelManager` maintains two filtered views over the same combined person list:
+  one for locked mode and one for unlocked mode.
+- In locked mode, only persons with `PersonStatus.LOCKED` are visible.
+  In unlocked mode, the filtered list can show the full combined list.
+- A successful mode switch is still followed by `Storage#saveAddressBook(...)`,
+  because `LogicManager` persists the address book after every command that completes without
+  throwing an exception.
+
+#### Lock flow
+
+`lock` is registered only for **Unlocked** mode in `CommandRegistry`.
+When the user executes `lock`, the command does not directly update `AppModeManager`.
+Instead, it returns a `CommandResult` requesting `AppMode.LOCKED`.
+
+`LogicManager` then:
+
+1. applies the requested mode transition through `AppModeManager`
+1. refreshes the model using `Model.PREDICATE_SHOW_ALL_PERSONS` for locked mode
+1. saves the address book through `Storage`
+
+After that, `MainWindow` updates the visible interface by:
+
+- changing the window title from `Spyglass` to `AddressBook`
+- refreshing the person list so only locked contacts remain visible
+- clearing the currently selected person details
+- hiding restricted UI fields such as the status label in the detail panel
+
+The sequence diagram below shows the successful `lock` path:
+
+<puml src="diagrams/LockSequenceDiagram.puml" width="900" />
+
+One intentional UI decision is that lock success feedback is not shown in the result pane.
+`MainWindow` clears the previous result history during a mode change, and only restores feedback
+for unlock transitions.
+This makes the locked interface appear cleaner and less suspicious.
+
+#### Unlock flow
+
+`unlock` is registered in both modes, but it behaves differently depending on the current state.
+
+When the app is in locked mode, `UnlockCommand` validates the provided password against the value
+stored in `Model`. If the password is correct, it returns a `CommandResult` requesting
+`AppMode.UNLOCKED`.
+
+`LogicManager` then:
+
+1. applies the requested mode transition through `AppModeManager`
+1. refreshes the filtered list for unlocked mode
+1. saves the address book through `Storage`
+
+Finally, `MainWindow` updates the UI by:
+
+- changing the window title from `AddressBook` to `Spyglass`
+- refreshing the person list so the unlocked-mode view is shown
+- clearing the current person details and updating the detail panel for the new mode
+- showing the unlock success message in the result pane
+
+If the provided password is incorrect while the app is locked, `UnlockCommand` throws a generic
+unknown-command `CommandException` instead of revealing password failure explicitly.
+If `unlock` is executed while the app is already unlocked, it throws a specific
+"already unlocked" message instead.
+
+The sequence diagram below shows the successful unlock path and the incorrect-password path:
+
+<puml src="diagrams/UnlockSequenceDiagram.puml" width="900" />
+
+#### Design considerations
+
+**Aspect: Where mode transitions should be applied**
+
+- **Alternative 1 (current choice):** Commands return a `CommandResult` that requests a mode change,
+  and `LogicManager` applies the transition.
+  - Pros: Keeps commands simple and avoids coupling them directly to global application state.
+  - Pros: Ensures all mode-changing commands follow the same post-processing pipeline
+    (mode update, filtered-list refresh, and save).
+  - Cons: The full behaviour of `lock`/`unlock` is split across command, logic, model, and UI.
+
+- **Alternative 2:** Let `LockCommand` and `UnlockCommand` directly mutate the current mode.
+  - Pros: Reduces the amount of follow-up handling outside the command class.
+  - Cons: Increases coupling between commands and application state managers.
+  - Cons: Makes it easier for commands to bypass consistent refresh and persistence behaviour.
+
+**Aspect: How locked and unlocked contact views should be represented**
+
+- **Alternative 1 (current choice):** Maintain one combined address book and expose different
+  filtered views depending on `AppMode`.
+  - Pros: Provides a single source of truth for all contacts.
+  - Pros: Simplifies features that operate across both modes, such as toggling a contact's status.
+  - Pros: Avoids data duplication and synchronization problems between separate lists.
+  - Cons: Mode behaviour depends on correct filtering logic in `ModelManager`.
+
+- **Alternative 2:** Maintain separate data stores or separate in-memory lists for locked and
+  unlocked contacts.
+  - Pros: Makes the distinction between the two modes conceptually explicit.
+  - Cons: Introduces extra synchronization complexity when contacts move between modes.
+  - Cons: Makes shared operations and persistence logic harder to maintain.
 
 ## **Documentation, logging, testing, configuration, dev-ops**
 

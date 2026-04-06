@@ -56,6 +56,16 @@ deactivate CommandContext
 LogicManager -> DeleteCommand : execute(context)
 activate DeleteCommand
 
+DeleteCommand -> CommandContext : getModel()
+activate CommandContext
+CommandContext --> DeleteCommand : model
+deactivate CommandContext
+
+DeleteCommand -> CommandContext : getAppMode()
+activate CommandContext
+CommandContext --> DeleteCommand : currentMode
+deactivate CommandContext
+
 DeleteCommand -> Model : getFilteredPersonList(currentMode)
 activate Model
 Model --> DeleteCommand : lastShownList

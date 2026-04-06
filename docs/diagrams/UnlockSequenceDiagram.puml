@@ -57,6 +57,16 @@ deactivate CommandContext
 LogicManager -> UnlockCommand : execute(context)
 activate UnlockCommand
 
+UnlockCommand -> CommandContext : getModel()
+activate CommandContext
+CommandContext --> UnlockCommand : model
+deactivate CommandContext
+
+UnlockCommand -> CommandContext : getAppMode()
+activate CommandContext
+CommandContext --> UnlockCommand : currentMode
+deactivate CommandContext
+
 UnlockCommand -> Model : getAddressBookPassword()
 activate Model
 Model --> UnlockCommand : storedPassword
