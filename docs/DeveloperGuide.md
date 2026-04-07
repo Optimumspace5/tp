@@ -70,13 +70,21 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` that is made up of parts e.g.`CommandBox`, `CommandHistory`, `PersonListPanel`, `StatusBarFooter` etc. All these, including the `MainWindow`, inherit from the abstract `UiPart` class which captures the commonalities between classes that represent parts of the visible GUI.
+The UI consists of a `MainWindow` that is made up of parts such as `CommandBox`, `PersonListPanel`, `PersonDetailPanel`, `ResultHistory`, and `SetupPanel`.
+These, including `MainWindow`, inherit from the abstract `UiPart` class which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFx UI framework. The layout of these UI parts are defined in matching `.fxml` files that are in the `src/main/resources/view` folder. For example, the layout of the [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java) is specified in [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml)
+SpyGlass uses mode-aware UI behavior:
+
+- In **Locked mode**, the window title appears as "AddressBook" to preserve plausible deniability.
+- In **Unlocked mode**, the window title appears as "Spyglass" and private-only fields (such as status details in `PersonDetailPanel`) are shown.
+- On first launch (or invalid password state), `MainWindow` displays `SetupPanel` to collect and save the initial password before normal command flow.
+- `ResultHistory` is used to display command outcomes and history in the main window.
+
+The `UI` component uses the JavaFX UI framework. The layout of these UI parts are defined in matching `.fxml` files in the `src/main/resources/view` folder. For example, the layout of [`MainWindow`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java) is specified in [`MainWindow.fxml`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/resources/view/MainWindow.fxml)
 
 The `UI` component,
 
@@ -197,20 +205,22 @@ How the parsing support classes work:
 
 ### Model component
 
+**API** : [`Model.java`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
+
+<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+
 The `Model` component,
 
 - stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-- stores the currently 'selected' `Person` objects (e.g., results of a search query) as a separate _filtered_ list which is exposed to outsiders as an unmodifiable `ObservableList<Person>` that can be 'observed' e.g. the UI can be bound to this list so that the UI automatically updates when the data in the list change.
-- stores a `UserPref` object that represents the user’s preferences. This is exposed to the outside as a `ReadOnlyUserPref` objects.
-- does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
-
-<box type="info" seamless>
-
-**Note:** An alternative (arguably, a more OOP) model is given below. It has a `Tag` list in the `AddressBook`, which `Person` references. This allows `AddressBook` to only require one `Tag` object per unique tag, instead of each `Person` needing their own `Tag` objects.<br>
-
-<puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
-
-</box>
+- maintains two filtered views over the same underlying contact list:
+    - `filteredLockedPersons`: shows only public contacts.
+    - `filteredUnlockedPersons`: shows the full contact list, including public and sensitive contacts.
+- behaviorally, this means **Locked mode** exposes only public contacts, while **Unlocked mode** exposes the complete list of public and sensitive contacts.
+- exposes a mode-aware `ObservableList<Person>` via `getFilteredPersonList(AppMode)` so the `UI` can bind to the currently active mode and update automatically.
+- stores a `UserPref` object that represents the user’s preferences. This is exposed to the outside as a `ReadOnlyUserPref` object.
+- stores and provides access to the application password in `AddressBook` (used by authentication and setup flows).
+- provides mode-aware mutating operations such as `addPerson`, `deletePerson`, `clearPersons`, and `setPerson` through APIs that accept an `AppMode` parameter.
+- is largely data-centric, but currently has a deliberate dependency on `AppMode` for mode-aware operations.
 
 ### Storage component
 
@@ -458,7 +468,27 @@ The sequence diagram below shows the successful unlock path and the incorrect-pa
     * 4a1. SpyGlass shows an error message indicating a storage failure.
       Use case ends.
 
-**Use case: UC2 - Lock application**
+**Use case: UC2 - Unlock the application**
+
+**Preconditions:** User is in Locked mode and a password has already been set.
+
+**MSS**
+
+1. User enters the `unlock` command with the password.
+2. SpyGlass compares the entered password against the stored password.
+3. SpyGlass switches the UI to Unlocked mode.
+4. SpyGlass shows the full contact list.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The password does not match the stored value.
+     * 2a1. SpyGlass stays in Locked mode.
+     * 2a2. SpyGlass shows an `Unknown command` message so the hidden mode is not revealed.
+        Use case ends.
+
+**Use case: UC3 - Lock the application**
 
 **Preconditions:** User is in Unlocked mode.
 
@@ -473,94 +503,273 @@ The sequence diagram below shows the successful unlock path and the incorrect-pa
 
 **Extensions**
 
-
 * 3a. The user performs operations while the system is locked.
     * 3a1. SpyGlass accepts the operation.
     * 3a2. SpyGlass stores the data in **Locked mode storage** instead of Unlocked mode storage.
       Use case ends.
 
----
-
-**Use case: UC3 - Unlock application**
-
-**MSS**
-
-1. User is currently interacting with the **Locked mode**.
-2. User enters the secret password previously set.
-3. SpyGlass switches the UI from **Locked mode** to Unlocked mode.
-4. SpyGlass loads the Unlocked mode contact list and shows a success message.
-
-   Use case ends.
-
-**Extensions**
-
-* 3a. The entered password is incorrect.
-    * 3a1. SpyGlass remains in **Locked mode**.
-    * 3a2. SpyGlass displays an "unknown command" message to mask the app's capabilities.
-      Use case ends.
-
----
-
 **Use case: UC4 - Add a contact**
 
-**MSS**
-
-1. User requests to add a contact with required details.
-2. User adds the new contact with relevant details.
-3. SpyGlass saves the new contact to the current mode's storage and updates the display.
-4. SpyGlass updates the command history to show the user added a new contact.
-
-   Use case ends.
-
-**Extensions**
-
-* 3a. A required parameter is missing.
-    * 3a1. SpyGlass shows an error message indicating the missing parameter.
-      Use case ends.
-
-* 3b. A parameter fails validation.
-    * 3b1. SpyGlass shows the corresponding validation error message.
-      Use case ends.
-
-* 4a. The contact already exists in the current mode.
-    * 4a1. SpyGlass shows an error message indicating the contact already exists.
-      Use case ends.
-
----
-
-**Use case: UC5 - Delete a contact**
+**Preconditions:** User is in either Locked or Unlocked mode.
 
 **MSS**
 
-1. User requests to delete a specific contact in the list by index.
-2. SpyGlass deletes the contact from the current mode's storage.
-3. SpyGlass updates the contact list display.
-4. SpyGlass updates the command history to reflect the user deleted a contact.
-
-   Use case ends.
+1. User enters the `add` command with the required contact details.
+2. SpyGlass validates the fields and checks whether the contact already exists in the current mode.
+3. SpyGlass saves the new contact to the current mode’s contact list.
+4. SpyGlass updates the displayed list and highlights the newly added contact when possible.
 
 **Extensions**
 
-* 1a. The given index is invalid.
-    * 1a1. SpyGlass shows an error message.
-      Use case resumes at step 2.
+* 2a. A required field is missing or invalid.
+     * 2a1. SpyGlass shows the relevant validation error.
+     * 2a2. The contact is not added.
+      Use case ends.
 
-* 2a. SpyGlass fails to save the deletion to storage.
-    * 2a1. SpyGlass shows an error message indicating storage failed.
+* 2b. The contact already exists in the current mode.
+    * 2b1. If SpyGlass is in Locked mode and the duplicate is a sensitive contact, SpyGlass replaces the sensitive contact instead of rejecting the command.
+    * 2b2. Otherwise, SpyGlass shows an error message indicating the duplicate.
+    * 2b3. If the duplicate is rejected, the contact is not added.
+    Use case ends.
+
+**Use case: UC5 - Edit a contact**
+
+**Preconditions:** User is in either Locked or Unlocked mode and the displayed list contains the target contact.
+
+**MSS**
+
+1. User enters the `edit` command with an index and one or more fields to update.
+2. SpyGlass checks that the index refers to a visible contact.
+3. SpyGlass applies the requested changes and saves the updated contact.
+4. SpyGlass refreshes the list and keeps the edited contact selected when possible.
 
     Use case ends.
 
-_{More to be added}_
+**Extensions**
+
+* 1a. No field is provided for editing.
+     * 1a1. SpyGlass shows an error message.
+     * 1a2. The contact is not changed.
+        Use case ends.
+
+* 2a. The index is invalid.
+     * 2a1. SpyGlass shows an error message.
+     * 2a2. The contact is not changed.
+        Use case ends.
+
+* 3a. The edited contact would duplicate an existing contact.
+    * 3a1. If SpyGlass is in Locked mode and the duplicate is a sensitive contact, SpyGlass updates the sensitive contact by overriding it.
+     * 3a2. Otherwise, SpyGlass shows an error message indicating the duplicate.
+     * 3a3. If the duplicate is rejected, the contact is not changed.
+        Use case ends.
+
+**Use case: UC6 - Delete a contact**
+
+**Preconditions:** User is in either Locked or Unlocked mode and the contact list is not empty.
+
+**MSS**
+
+1. User enters the `delete` command with an index.
+2. SpyGlass removes the selected contact from the current mode’s data.
+3. SpyGlass updates the visible list.
+4. SpyGlass shows a confirmation message.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The index does not match any visible contact.
+     * 1a1. SpyGlass shows an error message.
+     * 1a2. Nothing is deleted.
+        Use case ends.
+
+**Use case: UC7 - Search for contacts**
+
+**Preconditions:** User is in either Locked or Unlocked mode.
+
+**MSS**
+
+1. User enters the `find` command followed by one or more keywords.
+2. SpyGlass filters the current list to matching names.
+3. SpyGlass displays the matching contacts only.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The command format is invalid.
+     * 1a1. SpyGlass shows an error message.
+     * 1a2. The list remains unchanged.
+        Use case ends.
+
+**Use case: UC8 - List the current contacts**
+
+**Preconditions:** User is in either Locked or Unlocked mode.
+
+**MSS**
+
+1. User enters the `list` command.
+2. SpyGlass clears any active filter and restores the full list for the current mode.
+3. SpyGlass updates the display.
+
+    Use case ends.
+
+**Use case: UC9 - View a contact**
+
+**Preconditions:** User is in either Locked or Unlocked mode and the list contains the target contact.
+
+**MSS**
+
+1. User enters the `view` command with an index.
+2. SpyGlass selects the contact at that position.
+3. SpyGlass shows the contact details in the detail panel.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The index is invalid.
+     * 1a1. SpyGlass shows an error message.
+     * 1a2. No contact is selected.
+        Use case ends.
+
+**Use case: UC10 - Toggle a contact’s status**
+
+**Preconditions:** User is in Unlocked mode.
+
+**MSS**
+
+1. User enters the `toggle` command with an index.
+2. SpyGlass flips the selected contact between public and sensitive status.
+3. SpyGlass refreshes the list so the contact appears in the correct view.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The index is invalid.
+     * 1a1. SpyGlass shows an error message.
+     * 1a2. The contact status is not changed.
+        Use case ends.
+
+**Use case: UC11 - Clear the current contact list**
+
+**Preconditions:** User is in either Locked or Unlocked mode.
+
+**MSS**
+
+1. User enters the `clear` command.
+2. SpyGlass removes contacts from the current mode according to the active privacy state.
+3. SpyGlass updates the visible list to reflect the cleared data.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. SpyGlass is in Locked mode.
+     * 2a1. SpyGlass clears only public contacts.
+        Use case ends.
+
+* 2b. SpyGlass is in Unlocked mode.
+     * 2b1. SpyGlass clears the full list (both public and private).
+        Use case ends.
+
+**Use case: UC12 - Show command help**
+
+**Preconditions:** User is in either Locked or Unlocked mode.
+
+**MSS**
+
+1. User enters the `help` command.
+2. SpyGlass shows the command summary for the current mode.
+3. If the user asks for help on a specific command, SpyGlass shows the matching manual.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The requested command is restricted in the current mode.
+    * 3a1. SpyGlass treats the request as if the command does not exist and shows an unknown-manual message.
+    * 3a2. This prevents the hidden mode from being revealed through help text.
+        Use case ends.
+
+**Use case: UC13 - Open password setup flow**
+
+**Preconditions:** User is in Unlocked mode.
+
+**MSS**
+
+1. User enters the `setup` command.
+2. SpyGlass switches the UI to the password setup screen.
+3. User enters a new password and confirms it.
+4. SpyGlass stores the new password and returns to the main interface.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. The password is empty or consists only of spaces.
+     * 3a1. SpyGlass shows an error message.
+     * 3a2. SpyGlass keeps the setup screen open.
+        Use case resumes at step 3.
+
+* 4a. SpyGlass fails to save the password.
+     * 4a1. SpyGlass shows an error message indicating a storage failure.
+        Use case ends.
+
+**Use case: UC14 - Exit the application**
+
+**Preconditions:** User is using the application in any mode.
+
+**MSS**
+
+1. User enters the `exit` command.
+2. SpyGlass saves the current window state and preferences.
+3. SpyGlass closes cleanly.
+
+    Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `17` or above installed.
-2.  Should be able to hold up to 1000 persons without a noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-4. While in locked mode, the application name must not contain the words "Spy" or "Secret" to avoid detection.
-5. While in locked mode, restricted commands must not provide any visual feedback that hints at the existence of a hidden mode.
+#### Performance
 
-_{More to be added}_
+1. The application should remain responsive during normal use and handle around 1000 contacts without noticeable slowdown.
+2. Common command-driven actions should complete quickly enough to feel immediate in day-to-day use.
+3. The application should start up within a few seconds on typical desktop hardware.
+
+#### Usability
+
+1. A user who types reasonably fast should be able to complete most tasks faster with commands than with the mouse.
+2. The interface should support keyboard-only workflows.
+3. Error messages should clearly explain what went wrong and how the user can recover.
+
+#### Compatibility and Portability
+
+1. The application should run on mainstream operating systems with Java `17` installed.
+2. The application should be distributable as a single JAR file and use portable JSON data files.
+
+#### Privacy and Security
+
+1. In locked mode, the window title should not reveal SpyGlass branding or other sensitive clues.
+2. Restricted commands should not leak the hidden mode through visible UI feedback.
+3. Contact data should remain local to the device and should not depend on network access.
+4. The application should not require administrative privileges to run.
+
+#### Reliability and Data Handling
+
+1. The application should preserve data across restarts and recover cleanly from invalid or corrupted stored data.
+2. Saved data should remain human-readable and be validated before it is loaded.
+
+#### Maintainability and Extensibility
+
+1. The codebase should stay modular enough to support new commands, fields, and contact types without major refactoring.
+2. The project should follow standard Java conventions and use consistent design patterns for future changes.
+
+#### Accessibility
+
+1. The interface should remain usable with keyboard-only navigation.
+2. Text and controls should stay readable under standard UI scaling and contrast settings.
+
 
 ### Glossary
 
