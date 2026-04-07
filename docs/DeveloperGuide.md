@@ -257,7 +257,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Setup Password Implementation
 
-The current setup feature allows users to configure a secure password for their vault. Setting up a valid password is mandatory to ensure the privacy of the Unlocked mode. The setup mechanism switches the user interface to a dedicated view via `SetupPanel`.
+The current setup feature allows users to configure a secure password for their application. Setting up a valid password is mandatory to ensure the privacy of the Unlocked mode. The setup mechanism switches the user interface to a dedicated view via `SetupPanel`.
 
 The setup initialization is facilitated by `MainWindow`, `SecurityManager`, and `LogicManager`. It securely delegates the
 exact UI state change back to the UI context.
@@ -267,14 +267,14 @@ When an operation dictates that the user is required to set a password, the syst
 1.  **Initial Launch** — `MainWindow#fillInnerParts()` checks upon startup via `SecurityManager#isAuthenticated()`. If no valid password exists in the save file (such as on the first launch/data corruption), it prevents normal rendering of `MainWindow`.
 2.  **Setup Command** — While in Unlocked mode, the user deliberately enters the `setup` command.
 
-When the `setup` command is executed, `LogicManager` generates an empty `SetupCommand`. It creates and returns a `CommandResult` object with its `showSetup` flag evaluated to `true`. When the `CommandResult` is returned to the `MainWindow`, it checks `isShowSetup() == true`, and switches the active GUI root to the `SetupPanel`.
+When the `setup` command is executed, `LogicManager` generates an empty `SetupCommand`. It creates and returns a `CommandResult` object with its `showSetup` flag evaluated to `true`. Because `SetupCommand` always requests the setup flow, `MainWindow` calls `handleSetup()` after receiving the `CommandResult` and switches the active GUI root to the `SetupPanel`.
 
 Once the user is on the `SetupPanel`, they submit a string password, and the UI triggers the `MainWindow#handlePasswordInput(String)` callback. `SecurityManager` intercepts this, validates it utilizing `PasswordUtil`, and communicates with `LogicManager` to store it via `LogicManager#setAddressBookPassword()` and writes it persistently via `LogicManager#saveAddressBook()`.
 
 The following operations actively facilitate password setup and its view transitions:
 
 *   `SecurityManager#isAuthenticated()` — Validates whether a setup screen should appear.
-*   `CommandResult#isShowSetup()` — Checks if a command actively dictates a transition to the configuration interface.
+*   `CommandResult#isShowSetup()` — Indicates whether the current command requests the setup interface; for `SetupCommand`, this is always `true`.
 *   `MainWindow#handleSetup()` — Triggers the application into rendering its custom `SetupPanel` view.
 *   `SecurityManager#savePassword(String)` — Validates the password and store it persistently in `Storage`.
 
@@ -286,7 +286,7 @@ Given below is an example usage scenario and how the system behaves at each step
 
 **Step 3.** The `SetupCommand` executes. It creates a `CommandResult` instantiated with a `showSetup` flag set to `true`.
 
-**Step 4.** The `MainWindow` retrieves the boolean via `CommandResult#isShowSetup()`. Recognizing it is `true`, it immediately calls `MainWindow#handleSetup()`, which renders the secondary `SetupPanel` directly onto the primary stage.
+**Step 4.** The `MainWindow` receives the `CommandResult`, observes that `isShowSetup()` is `true` for `SetupCommand`, and immediately calls `MainWindow#handleSetup()`, which renders the secondary `SetupPanel` directly onto the primary stage.
 
 <box type="info" seamless>
 
