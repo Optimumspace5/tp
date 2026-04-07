@@ -286,7 +286,7 @@ public class MainWindow extends UiPart<Stage> {
 
             // Only show feedback for unlock; lock clears and stays blank
             if (isModeChangedToUnlocked) {
-                resultHistory.setFeedbackToUser(commandText, commandResult.getFeedbackToUser());
+                resultHistory.setFeedbackToUser(commandResult.getFeedbackToUser());
             } else if (commandResult.getRequestedMode().isEmpty()) {
                 resultHistory.setFeedbackToUser(commandText, commandResult.getFeedbackToUser());
             }

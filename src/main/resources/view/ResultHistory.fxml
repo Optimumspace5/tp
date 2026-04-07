@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.StackPane?>
 
 <StackPane fx:id="placeHolder" xmlns="http://javafx.com/javafx/17"
     xmlns:fx="http://javafx.com/fxml/1">
+  <padding>
+    <Insets top="15" right="15" bottom="5" left="15"/>
+  </padding>
   <TextArea fx:id="resultHistory" editable="false" styleClass="result-history"/>
 </StackPane>
