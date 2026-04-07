@@ -288,7 +288,7 @@ The following sequence diagram shows how an explicit `setup` execution passes th
 
 <puml src="diagrams/SetupSequenceDiagram.puml" alt="Setup Sequence Diagram" />
 
-**Design considerations:**
+### Design considerations
 
 **Aspect: How a password entry executes:**
 
@@ -302,10 +302,6 @@ The following sequence diagram shows how an explicit `setup` execution passes th
     *   **Cons:** Harder to implement mode-based command restrictions as the initial setup will need be executed in Locked mode but password changes should only be done in the Unlocked mode. Furthermore, the setup command could be saved in the `CommandHistory`, potentially revealing the existence of hidden functionalities in Locked mode.
 
 ---
-
-## **Implementation**
-
-This section describes some noteworthy details on how selected features are implemented.
 
 ### Lock/Unlock mode switching
 
