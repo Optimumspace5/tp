@@ -136,23 +136,12 @@ Here is a partial class diagram of the `Logic` component:
 
 <puml src="diagrams/LogicClassDiagram.puml" width="650"/>
 
+#### Delete command example
+
 The sequence diagram below illustrates the interactions within the `Logic` component for
 `execute("delete 1")`, assuming the provided index is valid.
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions inside the Logic component for the delete command" />
-
-#### Unlock command example
-
-The next sequence diagram shows how a mode-changing command flows through the same pipeline, using
-`execute("unlock myPassword123")` as the example and assuming the application is currently in
-locked mode.
-
-<puml src="diagrams/UnlockSequenceDiagram.puml" alt="Interactions inside the Logic component for the unlock command" />
-
-This diagram highlights an important design decision: `UnlockCommand` does not directly mutate the
-application mode. Instead, it validates the password and returns a `CommandResult` that requests
-`AppMode.UNLOCKED`. `LogicManager` is responsible for applying the transition through
-`AppModeManager`, refreshing the filtered list for the new mode, and persisting the address book.
 
 How the `Logic` component works:
 
@@ -234,8 +223,8 @@ The `Model` component,
 
 The `Storage` component,
 
-- can save both address book data and user preference data in JSON format, and read them back into corresponding objects. 
-- saves the application's **access password** alongside the contact list within `JsonSerializableAddressBook` to ensure the security state persists across application launches. 
+- can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+- saves the application's **access password** alongside the contact list within `JsonSerializableAddressBook` to ensure the security state persists across application launches.
 - preserves the privacy status of each `Person` status (Public or Sensitive) during serialisation, enabling the Model to correctly filter the FilteredPersonList based on the active AppMode.
 - inherits from both `AddressBookStorage` and `UserPrefStorage`, allowing it to be treated as either interface depending on the required functionality.
 
@@ -960,7 +949,7 @@ Given below are instructions to test Spyglass manually.
 3. **Editing with an invalid index**
     1. Test case: `edit 0 -n Jane Doe`
     2. **Expected:** Error details shown in the status message.
-       <br>Output: `Invalid command format! 
+       <br>Output: `Invalid command format!
                      edit: Edits the details of the person identified by the index number used in the displayed person list. Existing values will be overwritten by the input values.
                      Parameters: INDEX (must be a positive integer) [-n NAME] [-p PHONE] [-e EMAIL] [-a ADDRESS] [-t TAG]...
                      Example: edit 1 -p 91234567 -e johndoe@example.com`
@@ -992,7 +981,7 @@ Given below are instructions to test Spyglass manually.
     4. Test case: `unlock [password]` then `find Alex`
     5. **Expected:** Both "Alex Yeoh" and "Sensitive Alex" are displayed in the list.
        <br>Output: `2 persons listed!`
-   
+
 ### Deleting a Contact
 
 1. **Deleting a person while all contacts are shown**
