@@ -45,10 +45,12 @@ CommandRegistry ..> UnlockCommandParser
 CommandRegistry ..> ViewCommandParser
 
 AddCommandParser ..> ArgumentTokenizer
+AddCommandParser ..> ArgumentMultimap
 AddCommandParser ..> ParserUtil
 AddCommandParser ..> CliSyntax
 
 EditCommandParser ..> ArgumentTokenizer
+EditCommandParser ..> ArgumentMultimap
 EditCommandParser ..> ParserUtil
 EditCommandParser ..> CliSyntax
 
