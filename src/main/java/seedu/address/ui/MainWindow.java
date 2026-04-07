@@ -157,13 +157,13 @@ public class MainWindow extends UiPart<Stage> {
         commandBox.requestFocus();
 
         if (isShiftDown) {
-            if (personListPanel.isAnySelected()) {
+            if (personListPanel.isSelectionEmpty()) {
                 personListPanel.selectLast();
             } else {
                 personListPanel.selectPrevious();
             }
         } else {
-            if (personListPanel.isAnySelected()) {
+            if (personListPanel.isSelectionEmpty()) {
                 personListPanel.selectFirst();
             } else {
                 personListPanel.selectNext();

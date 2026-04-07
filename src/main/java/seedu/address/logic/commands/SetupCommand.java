@@ -6,7 +6,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 
 /**
  * Transitions the application to the Setup state.
- * This command is only accessible when the application is currently locked.
+ * This command is only accessible when the application is currently unlocked.
  */
 public class SetupCommand extends Command {
 

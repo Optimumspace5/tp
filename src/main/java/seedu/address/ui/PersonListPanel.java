@@ -130,16 +130,16 @@ public class PersonListPanel extends UiPart<Region> {
             return;
         }
         personListView.getSelectionModel().selectLast();
-        // Bottom align for  last item
+        // Bottom align for last item
         scrollToVisible(size - 1, true);
     }
 
     /**
-     * Returns true if a person is currently selected.
+     * Returns true if no person is currently selected.
      *
-     * @return True if selection exists.
+     * @return True if selection does not exist.
      */
-    public boolean isAnySelected() {
+    public boolean isSelectionEmpty() {
         return personListView.getSelectionModel().getSelectedIndex() < 0;
     }
 

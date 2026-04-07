@@ -111,51 +111,95 @@ How the startup check works:
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
-Here's a (partial) class diagram of the `Logic` component:
+The `Logic` component is responsible for:
 
-<puml src="diagrams/LogicClassDiagram.puml" width="550"/>
+- receiving raw command text from the UI
+- parsing that text into concrete `Command` objects
+- enforcing mode-based command availability via `CommandRegistry`
+- executing commands against the current `Model` using a `CommandContext`
+- applying requested mode transitions through `AppModeManager`
+- saving the address book through `Storage` after each command that completes without throwing
+- returning a `CommandResult` to the UI so that the UI can handle follow-up actions such as
+  selecting a person, showing setup, or exiting the application
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+Here is a partial class diagram of the `Logic` component:
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+<puml src="diagrams/LogicClassDiagram.puml" width="650"/>
 
-<box type="info" seamless>
+The sequence diagram below illustrates the interactions within the `Logic` component for
+`execute("delete 1")`, assuming the provided index is valid.
 
-**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X) but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
-</box>
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions inside the Logic component for the delete command" />
 
-#### Unlock Command Example
+#### Unlock command example
 
-The sequence diagram below illustrates the interactions within the `Logic` component for a state-changing command, taking `execute("unlock myPassword123")` API call as an example.
+The next sequence diagram shows how a mode-changing command flows through the same pipeline, using
+`execute("unlock myPassword123")` as the example and assuming the application is currently in
+locked mode.
 
-<puml src="diagrams/UnlockSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `unlock` Command" />
+<puml src="diagrams/UnlockSequenceDiagram.puml" alt="Interactions inside the Logic component for the unlock command" />
 
-This diagram shows how the `UnlockCommand` validates a password against the stored credentials in the `Model` and transitions the application to the `UNLOCKED` state upon successful authentication.
+This diagram highlights an important design decision: `UnlockCommand` does not directly mutate the
+application mode. Instead, it validates the password and returns a `CommandResult` that requests
+`AppMode.UNLOCKED`. `LogicManager` is responsible for applying the transition through
+`AppModeManager`, refreshing the filtered list for the new mode, and persisting the address book.
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, it is passed to an `AddressBookParser` object which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command communicates with the **`Model`** when it is executed (e.g., to delete a person).
-    * **App Mode Management:** `Logic` is also responsible for managing state transitions; it passes the current `AppMode` (Locked or Unlocked) down to the `Model` for execution.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned back from `Logic`.
+1. `LogicManager#execute(...)` receives the raw command text from the UI and logs it.
+1. `LogicManager` forwards the raw text to `AddressBookParser`.
+1. `AddressBookParser` trims the input, splits it into `commandWord` and `arguments` using
+   `BASIC_COMMAND_FORMAT`, then queries the current `AppMode` through the `Supplier<AppMode>`
+   provided by `LogicManager`.
+1. `AddressBookParser` delegates mode-aware command routing to `CommandRegistry`.
+1. `CommandRegistry` checks whether the command is registered and allowed in the current mode.
+   If either check fails, it throws a generic unknown-command `ParseException`.
+1. If the command requires structured argument parsing, `CommandRegistry` delegates to a concrete
+   parser such as `AddCommandParser`, `DeleteCommandParser`, `EditCommandParser`,
+   `FindCommandParser`, `HelpCommandParser`, `ToggleCommandParser`, `UnlockCommandParser`,
+   or `ViewCommandParser`.
+1. Commands that do not require their own parser, such as `clear`, `list`, `lock`, `exit`,
+   and `setup`, are instantiated directly by `CommandRegistry`.
+1. After parsing, `LogicManager` creates a `CommandContext`, which packages the current `Model`
+   and `AppMode` at execution time.
+1. The parsed command executes using that `CommandContext`.
+   This avoids stale-state issues where a command could be parsed under one mode but executed
+   after the application has already transitioned to another.
+1. The command returns a `CommandResult`.
+   In addition to user-facing feedback, `CommandResult` can request follow-up UI actions such as
+   selecting a person by index, opening the setup flow, exiting the application, or transitioning
+   to a different `AppMode`.
+1. If `CommandResult` requests a mode change, `LogicManager` updates `AppModeManager`
+   and refreshes the filtered list in `Model` for the requested mode.
+1. `LogicManager` saves the current address book through `Storage`.
+   If saving fails, `AccessDeniedException` and `IOException` are wrapped and surfaced as
+   `CommandException`.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+Concrete command classes encapsulate feature-specific behaviour after parsing. For example,
+`AddCommand`, `DeleteCommand`, `ToggleCommand`, and `ViewCommand` obtain the current `Model`
+and `AppMode` from `CommandContext` before mutating or querying the filtered list.
+Commands then use `CommandResult` to communicate follow-up actions:
+`AddCommand`, `EditCommand`, and `ViewCommand` can request UI selection through `selectedIndex`,
+`SetupCommand` uses `showSetup`, `ExitCommand` uses `exit`, and `LockCommand` /
+`UnlockCommand` request mode changes through `requestedMode`.
 
-<puml src="diagrams/ParserClasses.puml" width="600"/>
+The parser-related classes used by the `Logic` component are shown below:
 
-How the parsing works:
+<puml src="diagrams/ParserClasses.puml" width="700"/>
 
-- When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name e.g., `AddCommandParser`) which uses the other classes shown above to parse the user command and create a `XYZCommand` object (e.g., `AddCommand`) which the `AddressBookParser` returns back as a `Command` object.
-- All `XYZCommandParser` classes (e.g., `AddCommandParser`, `DeleteCommandParser`, ...) inherit from the `Parser` interface so that they can be treated similarly where possible e.g, during testing.
+How the parsing support classes work:
+
+- All concrete parsers implement the `Parser<T>` interface.
+- `AddressBookParser` is intentionally lightweight: it only performs the initial split of raw user
+  input before handing mode-aware routing to `CommandRegistry`.
+- `CommandRegistry` centralizes command registration and authorization, which keeps parser selection
+  logic and mode rules out of `AddressBookParser`.
+- `ArgumentTokenizer`, `ArgumentMultimap`, `ParserUtil`, `CliSyntax`, and `Prefix` are reused by
+  parsers that need structured argument extraction and validation.
 
 ### Model component
-
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
-
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
 The `Model` component,
 
@@ -174,15 +218,22 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2526S2-CS2103T-T15-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
 
-- can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-- inherits from both `AddressBookStorage` and `UserPrefStorage`, which means it can be treated as either one (if only the functionality of only one is needed).
-- depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+- can save both address book data and user preference data in JSON format, and read them back into corresponding objects. 
+- saves the application's **access password** alongside the contact list within `JsonSerializableAddressBook` to ensure the security state persists across application launches. 
+- preserves the privacy status of each `Person` status (Public or Sensitive) during serialisation, enabling the Model to correctly filter the FilteredPersonList based on the active AppMode.
+- inherits from both `AddressBookStorage` and `UserPrefStorage`, allowing it to be treated as either interface depending on the required functionality.
+
+The `Storage` component depends on the following classes in the `Model` component:
+
+- **`ReadOnlyAddressBook` & `ReadOnlyUserPrefs`**: Used to retrieve immutable snapshots of the data for the saving process.
+- **`Person`**: Required by `JsonAdaptedPerson` to map contact details and privacy levels from JSON format to domain objects.
+- **`UserPrefs`**: Used to store and retrieve metadata such as GUI settings and the path to the data file.
 
 ### Common classes
 
@@ -252,6 +303,146 @@ The following sequence diagram shows how an explicit `setup` execution passes th
 
 ---
 
+## **Implementation**
+
+This section describes some noteworthy details on how selected features are implemented.
+
+### Lock/Unlock mode switching
+
+This subsection describes how SpyGlass switches between **Locked** and **Unlocked** mode.
+It focuses on mode transitions and UI behaviour only.
+Password setup and password persistence are documented separately.
+
+#### Implementation
+
+The lock/unlock mechanism is facilitated primarily by `AppModeManager`, `CommandResult`,
+`LogicManager`, `ModelManager`, and `MainWindow`.
+
+Unlike an implementation that swaps between two separate databases, SpyGlass keeps a single
+combined `AddressBook` in memory and exposes different views of that data depending on the
+current `AppMode`.
+
+The relevant responsibilities are:
+
+- `LockCommand#execute(CommandContext)` returns a `CommandResult` requesting `AppMode.LOCKED`.
+- `UnlockCommand#execute(CommandContext)` validates the password against `Model` and returns a
+  `CommandResult` requesting `AppMode.UNLOCKED` when validation succeeds.
+- `LogicManager#execute(String)` applies the requested mode change through `AppModeManager`,
+  refreshes the filtered list for the new mode, and persists the address book through `Storage`.
+- `ModelManager#getFilteredPersonList(AppMode)` and
+  `ModelManager#updateFilteredPersonList(Predicate<Person>, AppMode)` expose the correct mode-based
+  view of the same underlying address book.
+- `MainWindow#updateUi(AppMode)` refreshes the visible UI after a mode change by updating the
+  application title, refreshing the person list, clearing the selected person details, and toggling
+  restricted fields such as the status label in the detail panel.
+
+The following state diagram summarizes the two application modes and their visible behaviour:
+
+<puml src="diagrams/LockUnlockStateDiagram.puml" width="650" />
+
+A few implementation details are worth noting:
+
+- The current mode is stored centrally in `AppModeManager`, not inside individual commands.
+- `LockCommand` and `UnlockCommand` do not directly mutate global application state.
+  They only return a `CommandResult` that requests a mode transition.
+- `LogicManager` is responsible for applying the mode transition and refreshing the filtered list.
+- `ModelManager` maintains two filtered views over the same combined person list:
+  one for locked mode and one for unlocked mode.
+- In locked mode, only persons with `PersonStatus.LOCKED` are visible.
+  In unlocked mode, the filtered list can show the full combined list.
+- A successful mode switch is still followed by `Storage#saveAddressBook(...)`,
+  because `LogicManager` persists the address book after every command that completes without
+  throwing an exception.
+
+#### Lock flow
+
+`lock` is registered only for **Unlocked** mode in `CommandRegistry`.
+When the user executes `lock`, the command does not directly update `AppModeManager`.
+Instead, it returns a `CommandResult` requesting `AppMode.LOCKED`.
+
+`LogicManager` then:
+
+1. applies the requested mode transition through `AppModeManager`
+1. refreshes the model using `Model.PREDICATE_SHOW_ALL_PERSONS` for locked mode
+1. saves the address book through `Storage`
+
+After that, `MainWindow` updates the visible interface by:
+
+- changing the window title from `Spyglass` to `AddressBook`
+- refreshing the person list so only locked contacts remain visible
+- clearing the currently selected person details
+- hiding restricted UI fields such as the status label in the detail panel
+
+The sequence diagram below shows the successful `lock` path:
+
+<puml src="diagrams/LockSequenceDiagram.puml" width="900" />
+
+One intentional UI decision is that lock success feedback is not shown in the result pane.
+`MainWindow` clears the previous result history during a mode change, and only restores feedback
+for unlock transitions.
+This makes the locked interface appear cleaner and less suspicious.
+
+#### Unlock flow
+
+`unlock` is registered in both modes, but it behaves differently depending on the current state.
+
+When the app is in locked mode, `UnlockCommand` validates the provided password against the value
+stored in `Model`. If the password is correct, it returns a `CommandResult` requesting
+`AppMode.UNLOCKED`.
+
+`LogicManager` then:
+
+1. applies the requested mode transition through `AppModeManager`
+1. refreshes the filtered list for unlocked mode
+1. saves the address book through `Storage`
+
+Finally, `MainWindow` updates the UI by:
+
+- changing the window title from `AddressBook` to `Spyglass`
+- refreshing the person list so the unlocked-mode view is shown
+- clearing the current person details and updating the detail panel for the new mode
+- showing the unlock success message in the result pane
+
+If the provided password is incorrect while the app is locked, `UnlockCommand` throws a generic
+unknown-command `CommandException` instead of revealing password failure explicitly.
+If `unlock` is executed while the app is already unlocked, it throws a specific
+"already unlocked" message instead.
+
+The sequence diagram below shows the successful unlock path and the incorrect-password path:
+
+<puml src="diagrams/UnlockSequenceDiagram.puml" width="900" />
+
+#### Design considerations
+
+**Aspect: Where mode transitions should be applied**
+
+- **Alternative 1 (current choice):** Commands return a `CommandResult` that requests a mode change,
+  and `LogicManager` applies the transition.
+  - Pros: Keeps commands simple and avoids coupling them directly to global application state.
+  - Pros: Ensures all mode-changing commands follow the same post-processing pipeline
+    (mode update, filtered-list refresh, and save).
+  - Cons: The full behaviour of `lock`/`unlock` is split across command, logic, model, and UI.
+
+- **Alternative 2:** Let `LockCommand` and `UnlockCommand` directly mutate the current mode.
+  - Pros: Reduces the amount of follow-up handling outside the command class.
+  - Cons: Increases coupling between commands and application state managers.
+  - Cons: Makes it easier for commands to bypass consistent refresh and persistence behaviour.
+
+**Aspect: How locked and unlocked contact views should be represented**
+
+- **Alternative 1 (current choice):** Maintain one combined address book and expose different
+  filtered views depending on `AppMode`.
+  - Pros: Provides a single source of truth for all contacts.
+  - Pros: Simplifies features that operate across both modes, such as toggling a contact's status.
+  - Pros: Avoids data duplication and synchronization problems between separate lists.
+  - Cons: Mode behaviour depends on correct filtering logic in `ModelManager`.
+
+- **Alternative 2:** Maintain separate data stores or separate in-memory lists for locked and
+  unlocked contacts.
+  - Pros: Makes the distinction between the two modes conceptually explicit.
+  - Cons: Introduces extra synchronization complexity when contacts move between modes.
+  - Cons: Makes shared operations and persistence logic harder to maintain.
+
 ## **Documentation, logging, testing, configuration, dev-ops**
 
 - [Documentation guide](Documentation.md)
@@ -268,30 +459,41 @@ The following sequence diagram shows how an explicit `setup` execution passes th
 
 **Target user profile**:
 
-- is a social individual in a high-scrutiny domestic environment
-- has their digital privacy frequently compromised by an overbearing or possessive partner
-- needs to discreetly manage sensitive social connections
-- requires a fast interface for the near-instant concealment of private data during unexpected screen checks
-- can type incredibly fast and prefers typing to mouse interactions
+- is a privacy-conscious user under high scrutiny in their domestic environment
+- has a need to manage sensitive contacts discreetly and securely
+- requires near-instant concealment of private data during unexpected checks
+- can type fast and prefers typing to mouse interactions
+- is reasonably comfortable using CLI apps
 
-**Value proposition**: Spyglass provides a secure interface for managing sensitive contacts hidden from observers. It allows users to categorise private contacts, enabling the concealment of private data through commands that hides sensitive entries. This ensures the application maintains the appearance of a standard address book, providing a layer of plausible deniability.
+**Value proposition**: Allows privacy-conscious users to manage sensitive social connections faster and more discreetly than a typical mouse/GUI driven app
 
-## User Stories
+## User stories
 
-**Priorities:** High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+**Priorities**: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​ | I want to …​ | So that I can…​                                                  |
-| :--- | :--- | :--- |:-----------------------------------------------------------------|
-| `* * *` | Contact Manager | add a contact with essential details | store new social connections efficiently.                        |
-| `* * *` | Contact Manager | view a list of public contacts | see my everyday connections at a glance.                         |
-| `* * *` | Discreet Contact Manager | delete sensitive contacts while in Unlocked mode | remove specific records permanently to avoid detection.          |
-| `* * *` | Discreet Contact Manager | switch to Locked mode instantly | hide private data and display a harmless interface to onlookers. |
-| `* * *` | Privacy-Conscious User | set a secure password upon initial launch | ensure only I can access the locked mode of the app.             |
-| `* * *` | Privacy-Conscious User | unlock the app using a secret password | transition from the public view to my private contact list.      |
-| `* *` | Contact Manager | edit contact information | keep my records accurate and up to date.                         |
-| `* *` | Discreet Contact Manager | search through hidden contacts by keyword | quickly retrieve sensitive information without manual scrolling. |
-
-_{More to be added}_
+| Priority | As a …​ | I want to …​ | So that I can…​ |
+|:---------| :--- | :--- |:--------------------------------------------------------------------------------|
+| `* * *`  | new user | see usage instructions | refer to instructions when I forget how to use the application |
+| `* * *`  | new user | set a secure password upon initial launch | ensure only I can access the private features of the application from the start |
+| `* * *`  | privacy-conscious user | change my access password | update my security credentials to ensure continued privacy |
+| `* * *`  | privacy-conscious user | add a new public contact | store non-sensitive social connections in the standard list |
+| `* * *`  | privacy-conscious user | add a new sensitive contact | securely store connections that must remain hidden |
+| `* * *`  | privacy-conscious user | edit a contact | update details of an existing contact |
+| `* * *`  | privacy-conscious user | list all contacts | see all contacts available in my current access level |
+| `* * *`  | privacy-conscious user | delete a contact | remove entries that I no longer need to store |
+| `* * *`  | user under scrutiny | lock the application instantly | hide sensitive data and show a standard interface to onlookers |
+| `* * *`  | user under scrutiny | unlock the application with a hidden command | access my private data through a password |
+| `* * *`  | privacy-conscious user | toggle a contact between public and sensitive | change the privacy level of a contact as my situation evolves |
+| `* * *`  | user under scrutiny | view specific details of a contact in a separate panel | ensure that sensitive details can be conditionally displayed to the user |
+| `* * *`  | user under scrutiny | experience no discovery of restricted commands in locked mode | ensure that sensitive commands are hidden from the help menu and suggestions |
+| `* * *`  | privacy-conscious user | navigate previous commands using up and down arrow keys | re-run or edit prior commands rapidly during high-pressure situations |
+| `* *`    | privacy-conscious user | navigate and focus the UI using Tab and Shift-Tab | operate the application at high speed using a keyboard |
+| `* *`    | privacy-conscious user | find a contact by name | quickly find a specific contact in my list |
+| `* *`    | privacy-conscious user | view detailed contact information via a command | access data entirely through the CLI for a faster experience than UI navigation |
+| `* *`    | user under scrutiny | clear all data | wipe the database instantly if the device's security is compromised |
+| `* *`    | privacy-conscious user | save contact details to a file | backup my sensitive information securely |
+| `* *`    | privacy-conscious user | load contact details from a file | restore my sensitive information from a backup |
+| `*`      | user under scrutiny | see a history of command results | verify the success of my data commands quickly |
 
 ### Use cases
 
@@ -428,73 +630,239 @@ _{More to be added}_
 
 ### Glossary
 
-- **Mainstream OS**: Windows, Linux, Unix, MacOS.
-- **Private contact detail**: Information that is meant to be hidden from unauthorized users.
-- **Locked Mode**: The default, public state of the app. It displays as a standard "AddressBook" to hide its true purpose.
-- **Unlocked Mode**: The secure state revealed after entering a password, showing private contacts.
-- **Locked Mode Storage**: A public database that saves contacts added while the app is locked.
-- **Unlocked Mode Storage**: A hidden database where sensitive contacts are kept.
-- **Restricted Command**: A command that only works in one specific mode (e.g., `lock` only works when the app is Unlocked).
-- **Unrestricted Command**: A command that functions in both Locked and Unlocked modes.
-- **Index**: A number representing a contact's position in the current list on the screen.
+- **Mainstream OS**: Windows, Linux, Unix, macOS.
+- **Privacy-conscious user**: An individual who maintains a distinction between sensitive and public contacts, requiring distinct access protocols and visibility levels for each to ensure personal privacy.
+- **User under scrutiny**: A user in a high-pressure environment where their digital privacy is actively monitored or at risk of compromise.
+- **Locked Mode**: The default, public state of the application. It functions as a standard, mundane address book to provide plausible deniability and hide the existence of any sensitive data from onlookers.
+  - *Visual Identifier:* The window title displays as **"AddressBook"** to blend in with standard utility software.
+- **Unlocked Mode**: The secure state of the application, revealed only after entering a hidden password. This mode allows the user to view, add and manage sensitive contacts that are otherwise hidden.
+  - *Visual Identifier:* The window title displays as **"Spyglass"** to confirm the user has access to private data.
+- **Sensitive Contact**: A contact entry that is only visible and accessible while the application is in Unlocked Mode.
+- **Public Contact**: A contact entry that remains visible in both Locked and Unlocked modes.
+- **Restricted Command**: A command that is only operational in a specific mode. For example, the `setup` command only functions when the application is currently Unlocked.
+- **Unrestricted Command**: A command that functions consistently across both Locked and Unlocked modes, such as the `exit` or `list` commands.
+- **Highlighted Contact**: The specific contact entry currently selected from the list, whose full details are displayed in the UI component located at the bottom left of the interface.
+- **MSS (Main Success Scenario)**: The most straightforward interaction for a given use case that assumes nothing goes wrong and all steps are completed successfully.
+- **API (Application Programming Interface)**: A set of rules or protocols that govern the application to allow different software components or external applications to communicate and work together.
+- **CLI (Command Line Interface)**: A text-based interface where users interact with Spyglass by typing specific commands on a keyboard.
+- **GUI (Graphical User Interface)**: The visual component of the application that displays contact lists and command results, allowing users to see information processed via the CLI.
+- **JAR**: A Java Archive file format used to distribute the Spyglass application and its required libraries as a single, portable executable file.
+- **JSON (JavaScript Object Notation)**: A lightweight, human-readable data format used by Spyglass to store contact information, password and application settings in local storage.
 
 ---
 
 ## **Appendix: Instructions for manual testing**
 
-Given below are instructions to test the app manually.
+Given below are instructions to test Spyglass manually.
 
 <box type="info" seamless>
 
-**Note:** These instructions only provide a starting point for testers to work on; testers are expected to do more *exploratory* testing.
+**Note:** These instructions serve as a baseline. Testers are expected to go beyond these cases and perform exploratory testing to verify the reliability of all privacy and security mechanisms.
 
 </box>
 
 ### Launch and Password Setup
 
 1. **Initial launch and setup**
-    1. Download the jar file and copy it into an empty folder.
-    2. Open a terminal and run `java -jar addressbook.jar`.
-    3. **Expected:** Instead of the main contact list, a **Password Setup** screen appears.
-    4. Enter a password (e.g., `myPassword123`) and confirm it.
-    5. **Expected:** The app transitions to the main GUI in **Locked mode** (window title shows "AddressBook"). Sample contacts are visible.
+    1. Download the `spyglass.jar` file and copy it into an empty folder.
+    2. Open a terminal and run `java -jar spyglass.jar`.
+    3. **Expected:** A **Password Setup** screen appears. The main interface is not accessible.
+    4. Enter a secure password (e.g., `secure123`) and confirm it.
+    5. **Expected:** The app transitions to the main GUI in **Locked mode**. Window title displays `AddressBook`. Sample public contacts are visible.
+       <br>Output: `Setup process completed successfully.`
 
 2. **Invalid Password Setup**
-    1. Delete the `data/addressbook.json` file to reset the app.
-    2. Launch the app again.
-    3. Try entering a password consisting only of spaces.
-    4. **Expected:** An error message is shown. The app does not proceed to the main interface.
+    1. Delete the `data/` folder to reset the app.
+    2. Launch the app and try entering a password consisting only of spaces or invalid symbols.
+    3. **Expected:** Error message is shown. The app prevents proceeding until a valid password is set.
+
+3. **Persistence of Locked State on Re-launch**
+    1. Prerequisites: App is in **Unlocked mode**.
+    2. Exit the application using the `exit` command.
+    3. Re-launch the app using `java -jar spyglass.jar`.
+    4. **Expected:** The app starts in **Locked mode** regardless of the exit state. Window title displays `AddressBook`.
+
+4. **Reconfiguring Password via Setup Command**
+    1. Prerequisites: App is in **Unlocked mode**.
+    2. Test case: `setup`
+    3. **Expected:** A **Password Setup** overlay or window appears, allowing the user to redefine their access credentials.
+       <br>Output: `Opening Setup Page...` and `Setup process completed successfully.`
+    4. Test case (In Locked Mode): `setup`
+    5. **Expected:** The app remains unchanged.
+       <br>Output: `Unknown command.`
 
 ### Authentication (Lock/Unlock)
 
-1. **Unlocking the app**
+1. **Unlocking the app (Successful)**
     1. Prerequisites: App is in **Locked mode**.
-    2. Test case: `unlock myPassword123` (using the password set during setup).
-    3. **Expected:** App switches to **Unlocked mode**. The secret contact list is displayed.
-    4. Test case: `unlock wrongPassword`.
-    5. **Expected:** App remains in Locked mode. An `Unknown command` message is shown to mask the authentication attempt.
+    2. Test case: `unlock secure123`
+    3. **Expected:** The window title changes to `Spyglass`. Sensitive contacts become visible.
+       <br>Output: `Switched to Unlocked Interface.`
 
-2. **Locking the app**
+2. **Unlocking the app (Failed/Stealth check)**
+    1. Prerequisites: App is in **Locked mode**.
+    2. Test case: `unlock wrongPassword`
+    3. **Expected:** The window title remains `AddressBook`. No sensitive data is revealed.
+       <br>Output: `Unknown Command`
+
+3. **Locking the app**
     1. Prerequisites: App is in **Unlocked mode**.
-    2. Test case: `lock`.
-    3. **Expected:** App immediately switches back to **Locked mode**. Secret contacts are hidden, and the public contact list is shown.
+    2. Test case: `lock`
+    3. **Expected:** The window title immediately reverts to `AddressBook`. Sensitive contacts are instantly hidden.
+       <br>Output: None
 
-### Deleting a Person
+### Listing Contacts
 
-1. **Deleting a person**
-    1. Prerequisites: Ensure there are multiple contacts in the current list.
-    2. Test case: `delete 1`.
-    3. **Expected:** The first contact in the secret list is deleted. Success message shown in the status box.
+1. **Listing contacts in different modes**
+    1. Prerequisites: Ensure there is at least one sensitive contact and one public contact.
+    2. Test case (Locked): `list`
+    3. **Expected:** Only public contacts are displayed.
+       <br>Output: `Listed all persons`
+    4. Test case (Unlocked): `list`
+    5. **Expected:** Both public and sensitive contacts are displayed in a unified list.
+       <br>Output: `Listed all persons`
+
+### Adding Contacts
+
+1. **Adding a public contact**
+    1. Prerequisites: App is in **Locked mode**.
+    2. Test case: `add -n John Doe -p 98765432 -e john@example.com -a 123 Main St`
+    3. **Expected:** Contact is added. Visible in both Locked and Unlocked modes.
+       <br>Output: `New person added: John Doe; Phone: 98765432; Email: john@example.com; Address: 123 Main St; Tags: `
+       <br>John Public has been added to the address book!
+
+2. **Adding a sensitive contact**
+    1. Prerequisites: App is in **Unlocked mode**.
+    2. Test case: `add -n Rebecca Lee -p 12345678 -e rebecca@secret.com -a 234 Main St`
+    3. **Expected:** Contact is added to the list.
+       <br>Output: `New person added: Rebecca Lee; Phone: 12345678; Email: rebecca@secret.com; Address: 234 Main St; Tags: `
+    4. Test case: Switch to **Locked mode** via `lock`.
+    5. **Expected:** "Rebecca Lee" is no longer visible in the list.
+
+### Editing Contacts
+
+1. **Editing a person while all contacts are shown**
+    1. Prerequisites: Sample public contacts are used.
+    2. Test case: `edit 1 -n Jane Doe -p 91234567`
+    3. **Expected:** The first contact in the list is updated with the new name and phone number. Detail panel reflects changes immediately.
+       <br>Output: `Edited Person: Jane Doe; Phone: 91234567; Email: alexyeoh@example.com; Address: Blk 30 Geylang Street 29, #06-40; Tags: [friends]`
+
+2. **Editing with missing fields**
+    1. Test case: `edit 1`
+    2. **Expected:** No contact is edited. Error details shown in the status message.
+       <br>Output: `At least one field to edit must be provided.`
+
+3. **Editing with an invalid index**
+    1. Test case: `edit 0 -n Jane Doe`
+    2. **Expected:** Error details shown in the status message.
+       <br>Output: `Invalid command format! 
+                     edit: Edits the details of the person identified by the index number used in the displayed person list. Existing values will be overwritten by the input values.
+                     Parameters: INDEX (must be a positive integer) [-n NAME] [-p PHONE] [-e EMAIL] [-a ADDRESS] [-t TAG]...
+                     Example: edit 1 -p 91234567 -e johndoe@example.com`
+
+### Finding Contacts
+
+1. **Finding contacts by name**
+    1. Prerequisites: Sample public contacts are used.
+    2. Test case: `find Alex`
+    3. **Expected:** The contact list filters to show only contacts whose names contain "Alex". Alex Yeoh should be displayed.
+       <br>Output: `1 persons listed!`
+
+2. **Finding contacts with multiple keywords**
+    1. Prerequisites: Sample public contacts are used.
+    2. Test case: `find Alex Bernice Charlotte`
+    3. **Expected:** The contact list filters to show all contacts whose names contain at least one of the keywords. Alex Yeoh, Bernice Yu, and Charlotte Oliveiro should be displayed.
+       <br>Output: `3 persons listed!`
+
+3. **Finding contacts with no matching results**
+    1. Test case: `find NonExistentName`
+    2. **Expected:** The contact list becomes empty.
+       <br>Output: `0 persons listed!`
+
+4. **Finding contacts while Locked vs Unlocked**
+    1. Prerequisites: A sensitive contact "Sensitive Alex" has been added. App is in **Locked mode**.
+    2. Test case: `find Alex`
+    3. **Expected:** Only "Alex Yeoh" is displayed. "Sensitive Alex" remains hidden.
+       <br>Output: `1 persons listed!`
+    4. Test case: `unlock [password]` then `find Alex`
+    5. **Expected:** Both "Alex Yeoh" and "Sensitive Alex" are displayed in the list.
+       <br>Output: `2 persons listed!`
+   
+### Deleting a Contact
+
+1. **Deleting a person while all contacts are shown**
+    1. Prerequisites: Sample public contacts are used. List all contacts using the `list` command. Multiple contacts in the list.
+    2. Test case: `delete 1`
+    3. **Expected:** First contact is deleted from the list. Success message shown in the status message.
+       <br>Output: `Deleted Person: Alex Yeoh; Phone: 87438807; Email: alexyeoh@example.com; Address: Blk 30 Geylang Street 29, #06-40; Tags: [friends]`
+
+### Privacy Management (Toggling)
+
+1. **Toggling a contact from Public to Sensitive**
+    1. Prerequisites: Sample public contacts are used. App is in **Unlocked mode**.
+    2. Test case: `toggle 1`
+    3. **Expected:** The contact's status changes to sensitive.
+       <br>Output: `Updated Alex Yeoh to Sensitive contact.`
+    4. Switch to **Locked mode** via `lock`.
+    5. **Expected:** Alex Yeoh is now hidden from the list.
+
+2. **Toggling a contact from Sensitive to Public**
+    1. Prerequisites: Sample public contacts are used. App is in **Unlocked mode**.
+    2. Test case: `add -n Rebecca Lee -p 12345678 -e rebecca@secret.com -a 234 Main St` followed by `toggle 7`
+    3. **Expected:** The contact's status changes to public.
+       <br>Output: `Updated Rebecca Lee to Public contact.`
+    4. Switch to **Locked mode** via `lock`.
+    5. **Expected:** Rebecca Lee is visible from the list.
+
+### Viewing Details
+
+1. **Viewing details**
+    1. Prerequisites: Sample public contacts are used. App is in **Locked mode**.
+    2. Test case: `view 1`
+    3. **Expected:** The **PersonDetailPanel** updates at the bottom left. No description of "Public Contact" or "Sensitive Contact" are visible in the panel.
+       <br>Output: `Viewed Person: Alex Yeoh`
+
+### Keyboard Navigation and History
+
+1. **Focus and Navigation**
+    1. Prerequisites: Sample public contacts are used. No contacts are highlighted.
+    2. Press `Tab`.
+    2. **Expected:** Command Box is focused and Alex Yeoh is highlighted.
+    3. Press `Shift + Tab`.
+    4. **Expected:** Roy Balakrishnan is highlighted.
+
+2. **Command History**
+    1. Type `list`, then `help`, then `clear`.
+    2. Press the **Up Arrow**.
+    3. **Expected:** Command box populates with `clear`, then `help`, then `list`.
+    4. Press the **Down Arrow**.
+    5. **Expected:** Command box populates with `help`, then `clear`.
+
+### Stealth Verification
+
+1. **No Discovery Test**
+    1. Prerequisites: App is in **Locked mode**.
+    2. Test case: `help`
+    3. **Expected:** The help window does **not** list `unlock`, `lock`, `setup` or `toggle`.
+    4. Test case: Type `unlock` into the command box.
+    5. **Expected:** No auto-suggestions for the `unlock` command appear.
 
 ### Saving Data
 
-1. **Dealing with missing/corrupted data files**
-    1. **Missing File:** Delete `data/addressbook.json`. Launch the app.
-        * **Expected:** App treats this as a fresh install and prompts for password setup.
-    2. **Corrupted JSON:** Open `data/addressbook.json` and remove a bracket or quote to make the JSON invalid.
-        * **Expected:** SpyGlass clears the corrupted data and starts with an empty file/password setup prompt.
-    3. **Empty Password Field:** Manually edit the JSON file to set the `password` field to `""`.
-        * **Expected:** On next launch, the app prompts the user to set a new password.
+1. **Dealing with missing data files**
+    1. Navigate to the `data/` folder and delete `addressbook.json`.
+    2. Attempt to run the app.
+    3. **Expected:** App treats this as a fresh install and prompts for **Password Setup**.
+
+2. **Dealing with corrupted data files**
+    1. Open `data/addressbook.json` and delete a bracket to corrupt the JSON.
+    2. Attempt to run the app.
+    3. **Expected:** Spyglass detects corruption, clears invalid data for security, and prompts for **Password Setup**.
+
+3. **Dealing with invalid password**
+    1. Open `data/addressbook.json` and add a whitespace to the password.
+    2. Attempt to run the app.
+    3. **Expected:** Spyglass detects unrecoverable password, and prompts for **Password Setup**.
 
 ### Window Preferences
 
@@ -502,5 +870,3 @@ Given below are instructions to test the app manually.
     1. Resize the window and move it to a new corner of your screen. Close the app.
     2. Re-launch the app.
     3. **Expected:** The app opens with the previous size and position.
-
-1. _{ more test cases …​ }_
