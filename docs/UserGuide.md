@@ -115,6 +115,9 @@ Format: `add -n NAME -p PHONE_NUMBER -e EMAIL -a ADDRESS [-t TAG]…​`
 **Tip:** A person can have any number of tags (including 0)
 </box>
 
+* After a successful add, SpyGlass highlights the newly added contact when it remains visible in the current list.
+* If the new contact duplicates an existing contact, SpyGlass rejects the command. In Locked mode, if the duplicate is an existing `Sensitive` contact, SpyGlass overrides that hidden contact instead.
+
 Examples:
 * `add -n John Doe -p 98765432 -e johnd@example.com -a John street, block 123, #01-01`
 * `add -n Betsy Crowe -t friend -e betsycrowe@example.com -a Newgate Prison -p 1234567 -t criminal`
@@ -131,12 +134,14 @@ Edits an existing person in the address book.
 
 Format: `edit INDEX [-n NAME] [-p PHONE] [-e EMAIL] [-a ADDRESS] [-t TAG]…​`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
+* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, â€¦â€‹
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * When editing tags, the existing tags of the person will be removed i.e adding of tags is not cumulative.
-* You can remove all the person’s tags by typing `-t ` without
+* You can remove all the personâ€™s tags by typing `-t ` without
     specifying any tags after it.
+* After a successful edit, SpyGlass keeps the edited contact highlighted when it remains visible in the current list.
+* If the edited contact would duplicate an existing contact, SpyGlass rejects the command. In Locked mode, if the duplicate is an existing `Sensitive` contact, SpyGlass overrides that hidden contact instead.
 
 Examples:
 *  `edit 1 -p 91234567 -e johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -228,6 +233,7 @@ Format: `toggle INDEX`
 * This command is only available in **Unlocked Mode**.
 * A contact toggled to `Sensitive` will no longer appear in Locked Mode.
 * A contact toggled to `Public` will appear in Locked Mode.
+* After a successful toggle, SpyGlass refreshes the displayed list immediately so the updated status is reflected in the current view.
 
 Examples:
 * `toggle 1` : Toggles the 1st contact's status.
