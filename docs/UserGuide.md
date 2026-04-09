@@ -115,12 +115,30 @@ Format: `add -n NAME -p PHONE_NUMBER -e EMAIL -a ADDRESS [-t TAG]…​`
 **Tip:** A person can have any number of tags (including 0)
 </box>
 
-* After a successful add, SpyGlass highlights the newly added contact when it remains visible in the current list.
-* If the new contact duplicates an existing contact, SpyGlass rejects the command. In Locked mode, if the duplicate is an existing `Sensitive` contact, SpyGlass overrides that hidden contact instead.
+* After a successful add, SpyGlass highlights the newly added contact.
+* If the new contact duplicates an existing contact, SpyGlass rejects the command in Unlocked Mode. In Locked mode, if the duplicate is an existing `Sensitive` contact, SpyGlass overrides that hidden contact instead.
 
 Examples:
 * `add -n John Doe -p 98765432 -e johnd@example.com -a John street, block 123, #01-01`
 * `add -n Betsy Crowe -t friend -e betsycrowe@example.com -a Newgate Prison -p 1234567 -t criminal`
+
+<box type="info" seamless>
+
+**Notes:**<br>
+
+* None of the required fields (`NAME`, `PHONE_NUMBER`, `EMAIL`, and `ADDRESS`) may be left blank.
+* Names should only contain alphanumeric characters and spaces.
+* Phone numbers should contain only digits and be at least 3 digits long.
+* Tags should only contain alphanumeric characters.
+* Emails should be of the format `local-part@domain` and must satisfy all of the following constraints:
+  * The local-part should only contain alphanumeric characters and these special characters: `+`, `_`, `.`, `-`.
+  * The local-part must not start or end with a special character.
+  * The domain name must be made up of domain labels separated by periods.
+  * The domain name must end with a domain label that is at least 2 characters long.
+  * Each domain label must start and end with an alphanumeric character.
+  * Each domain label may contain hyphens, but only between alphanumeric characters.
+
+</box>
 
 #### Listing all persons : `list`
 
@@ -140,8 +158,8 @@ Format: `edit INDEX [-n NAME] [-p PHONE] [-e EMAIL] [-a ADDRESS] [-t TAG]…​`
 * When editing tags, the existing tags of the person will be removed i.e adding of tags is not cumulative.
 * You can remove all the person’s tags by typing `-t ` without
     specifying any tags after it.
-* After a successful edit, SpyGlass keeps the edited contact highlighted when it remains visible in the current list.
-* If the edited contact would duplicate an existing contact, SpyGlass rejects the command. In Locked mode, if the duplicate is an existing `Sensitive` contact, SpyGlass overrides that hidden contact instead.
+* After a successful edit, SpyGlass keeps the edited contact highlighted.
+* If the edited contact would duplicate an existing contact, SpyGlass rejects the command in Unlocked mode. In Locked mode, if the duplicate is an existing `Sensitive` contact, SpyGlass overrides that hidden contact instead. Otherwise, the command is rejected.
 
 Examples:
 *  `edit 1 -p 91234567 -e johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -233,7 +251,7 @@ Format: `toggle INDEX`
 * This command is only available in **Unlocked Mode**.
 * A contact toggled to `Sensitive` will no longer appear in Locked Mode.
 * A contact toggled to `Public` will appear in Locked Mode.
-* After a successful toggle, SpyGlass refreshes the displayed list immediately so the updated status is reflected in the current view.
+* After a successful toggle, SpyGlass refreshes the displayed list immediately and keeps the toggled contact highlighted so the updated status is reflected in the current view.
 
 Examples:
 * `toggle 1` : Toggles the 1st contact's status.
