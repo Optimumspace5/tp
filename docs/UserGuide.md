@@ -46,6 +46,27 @@ SpyGlass is a desktop app for managing public and secret contacts, optimised for
 
 --------------------------------------------------------------------------------------------------------------------
 
+## User Interface Overview
+![ui-overview](images/ui-overview.jpg)
+
+This is the main interface of SpyGlass. It consists of:
+
+* **Contact List** — Displays all contacts in your current view. In Locked mode, you see your public contacts only; in Unlocked mode, you see both public and sensitive contacts.
+* **Contact Details** — Displays contact information in full detail (with email, address etc.) of the currently selected contact.
+* **Command Box** — This is where you enter commands to interact with SpyGlass. Type your command here and press **Enter** to execute it.
+* **Result History** - Displays the list of feedback messages of the commands you entered in the command box.
+
+<box type="tip" seamless>
+
+**Tip — Keyboard Navigation:**
+
+* Use <kbd>Up</kbd> and <kbd>Down</kbd> in the Command Box to cycle through your past commands in the current mode, so you can quickly reuse and modify them.
+* Use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to cycle through the displayed contact list. The selected contact will be highlighted and its full details will appear in the Contact Details panel.
+
+</box>
+
+--------------------------------------------------------------------------------------------------------------------
+
 ## Features
 
 <box type="info" seamless>
@@ -159,6 +180,28 @@ Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+#### Viewing a contact : `view`
+
+Displays detailed information for a specific contact by selecting them using their index number.
+
+**Format:** `view INDEX`
+
+* Views the person identified by the index number shown in the displayed person list.
+* The index **must be a positive integer** 1, 2, 3, …​
+* The contact details will be displayed in the Details Panel for full viewing.
+
+<box type="info" seamless>
+
+**Note:** The `view` command is available in both Locked and Unlocked modes. In Locked mode, you can only view public contacts, while in Unlocked mode, you can view both public and sensitive contacts.
+
+</box>
+
+**Examples:**
+* `view 1` displays the details of the 1st contact in the currently displayed list.
+* `find John` followed by `view 1` displays the details of the 1st person in the search results.
+
+![View command ui](images/ViewCommandUi.png)
 
 #### Deleting a person : `delete`
 
