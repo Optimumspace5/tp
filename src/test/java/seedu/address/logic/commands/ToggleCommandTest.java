@@ -49,7 +49,8 @@ public class ToggleCommandTest {
         expectedModel.setPerson(personToToggle, toggledPerson, TEST_MODE);
         expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, TEST_MODE);
 
-        assertCommandSuccess(toggleCommand, model, TEST_MODE, new CommandResult(expectedMessage), expectedModel);
+        CommandResult expectedCommandResult = new CommandResult(expectedMessage, INDEX_FIRST_PERSON);
+        assertCommandSuccess(toggleCommand, model, TEST_MODE, expectedCommandResult, expectedModel);
     }
 
     @Test
@@ -69,8 +70,9 @@ public class ToggleCommandTest {
         expectedModel.setPerson(unlockedPerson, toggledPerson, TEST_MODE);
         expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, TEST_MODE);
 
+        CommandResult expectedCommandResult = new CommandResult(expectedMessage, INDEX_FIRST_PERSON);
         assertCommandSuccess(toggleCommand, customModel, TEST_MODE,
-                new CommandResult(expectedMessage), expectedModel);
+                expectedCommandResult, expectedModel);
     }
 
     @Test
@@ -96,7 +98,8 @@ public class ToggleCommandTest {
         expectedModel.setPerson(personToToggle, toggledPerson, TEST_MODE);
         expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, TEST_MODE);
 
-        assertCommandSuccess(toggleCommand, model, TEST_MODE, new CommandResult(expectedMessage), expectedModel);
+        CommandResult expectedCommandResult = new CommandResult(expectedMessage, INDEX_FIRST_PERSON);
+        assertCommandSuccess(toggleCommand, model, TEST_MODE, expectedCommandResult, expectedModel);
     }
 
     @Test

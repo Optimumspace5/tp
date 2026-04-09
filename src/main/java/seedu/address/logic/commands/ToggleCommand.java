@@ -7,6 +7,7 @@ import java.util.List;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.AppMode;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -38,7 +39,8 @@ public class ToggleCommand extends Command {
     public CommandResult execute(CommandContext context) throws CommandException {
         requireNonNull(context);
         Model model = context.getModel();
-        List<Person> lastShownList = model.getFilteredPersonList(context.getAppMode());
+        AppMode appMode = context.getAppMode();
+        List<Person> lastShownList = model.getFilteredPersonList(appMode);
 
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
@@ -47,11 +49,20 @@ public class ToggleCommand extends Command {
         Person personToToggle = lastShownList.get(targetIndex.getZeroBased());
         Person toggledPerson = createToggledPerson(personToToggle);
 
-        model.setPerson(personToToggle, toggledPerson, context.getAppMode());
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, context.getAppMode());
+        model.setPerson(personToToggle, toggledPerson, appMode);
+        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, appMode);
+
+        List<Person> updatedList = model.getFilteredPersonList(appMode);
+        int selectedIndex = updatedList.indexOf(toggledPerson);
+
+        if (selectedIndex < 0) {
+            return new CommandResult(String.format(MESSAGE_TOGGLE_PERSON_SUCCESS,
+                    toggledPerson.getName(), toggledPerson.getStatus()));
+        }
 
         return new CommandResult(String.format(MESSAGE_TOGGLE_PERSON_SUCCESS,
-                toggledPerson.getName(), toggledPerson.getStatus()));
+                toggledPerson.getName(), toggledPerson.getStatus()),
+                Index.fromZeroBased(selectedIndex));
     }
 
     private static Person createToggledPerson(Person person) {
