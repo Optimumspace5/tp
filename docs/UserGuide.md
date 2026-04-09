@@ -116,14 +116,35 @@ Unrestricted commands are the basic functions of SpyGlass that are available in 
 
 #### Viewing help : `help`
 
-Shows a concise command manual in the command history panel.
+Shows a concise command manual in the command history panel. The help command is available in both Locked and Unlocked modes.
 
-Format: `help [COMMAND]`
+**Format**
 
-Examples:
-* `help`
-* `help add`
-* `help toggle`
+```text
+help [COMMAND]
+```
+
+**Parameters**
+
+* `COMMAND` (optional): The name of a command to display help for.
+
+<box type="info" seamless>
+
+If `COMMAND` is provided, SpyGlass shows help for that specific command. Otherwise, it shows the general help overview.
+
+In Locked mode, `help lock`, `help unlock`, `help setup`, and `help toggle` return an unknown command message because their manuals are hidden in that mode.
+
+</box>
+
+**Examples**
+
+```text
+help
+help add
+help edit
+```
+
+![result for 'help image'](images/helpCommand.jpg)
 
 #### Adding a person: `add`
 
