@@ -200,11 +200,15 @@ Adds a person to the address book.
 </box>
 
 * After a successful add, SpyGlass **highlights** the newly added contact.
-* **Mode-specific status:** 
+* **Mode-specific status:**
   * Contacts added in **Unlocked mode** are set to **`Sensitive`** by default.
   * Contacts added in **Locked mode** are set to **`Public`** by default.
   * To change a contact's status after adding, refer to the [toggle](#toggling-a-contact-status-toggle) command.
-* If the new contact duplicates an existing contact, SpyGlass **rejects** the command in **Unlocked Mode**. In **Locked mode**, if the duplicate is an existing `Sensitive` contact, SpyGlass **overrides** that sensitive contact instead.
+* SpyGlass treats two contacts as duplicates only if they have the **same phone number** and the **same name ignoring case**.
+* SpyGlass does **not** treat contacts as duplicates based on email address alone, or based on name alone.
+* In **Unlocked mode**, if the new contact duplicates any existing contact, SpyGlass shows a duplicate-contact error and does **not** add the new contact.
+* In **Locked mode**, if the new contact duplicates a hidden `Sensitive` contact from Unlocked mode, SpyGlass overrides that hidden `Sensitive` contact instead of rejecting the command.
+* In **Locked mode**, if the new contact duplicates an existing `Public` contact, SpyGlass shows a duplicate-contact error and does **not** add the new contact.
 
 **Examples:**
 * `add -n John Doe -p 98765432 -e johnd@example.com -a John street, block 123, #01-01`
@@ -248,7 +252,11 @@ Edits an existing person in the address book.
 * When editing tags, the existing tags of the person will be **removed** (i.e., adding of tags is not cumulative).
 * You can **remove all** the person’s tags by typing `-t ` without specifying any tags after it.
 * After a successful edit, SpyGlass keeps the edited contact **highlighted**.
-* If the edited contact would duplicate an existing contact, SpyGlass **rejects** the command in **Unlocked mode**. In **Locked mode**, if the duplicate is an existing `Sensitive` contact, SpyGlass **overrides** that hidden contact instead. Otherwise, the command is **rejected**.
+* SpyGlass treats two contacts as duplicates only if they have the **same phone number** and the **same name ignoring case**.
+* SpyGlass does **not** treat contacts as duplicates based on email address alone, or based on name alone.
+* In **Unlocked mode**, if the edited contact duplicates any existing contact, SpyGlass shows a duplicate-contact error and does **not** apply the edit.
+* In **Locked mode**, if the edited contact duplicates a hidden `Sensitive` contact from Unlocked mode, SpyGlass overrides that hidden `Sensitive` contact instead of rejecting the command.
+* In **Locked mode**, if the edited contact duplicates an existing `Public` contact, SpyGlass shows a duplicate-contact error and does **not** apply the edit.
 
 <box type="info" seamless>
 
@@ -276,7 +284,7 @@ Finds persons whose names contain any of the given keywords.
 **Examples:**
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  
+
 ![result for 'find alex david'](images/findAlexDavidResult.png)
 
 #### Viewing a contact: **`view`**
@@ -410,7 +418,7 @@ Toggles the specified contact between **`Public`** and **`Sensitive`** status.
 * **Status Flip Logic:**
   * If the contact is currently **`Public`**, it will be changed to **`Sensitive`**.
   * If the contact is currently **`Sensitive`**, it will be changed to **`Public`**.
-* **Immediate Effect:** 
+* **Immediate Effect:**
   * A contact toggled to **`Sensitive`** will **disappear** from the list when the app is in **Locked Mode**.
   * A contact toggled to **`Public`** will **remain visible** in both modes.
 * After a successful toggle, SpyGlass refreshes the displayed list and keeps the toggled contact **highlighted** so the updated status is reflected in the current view.
