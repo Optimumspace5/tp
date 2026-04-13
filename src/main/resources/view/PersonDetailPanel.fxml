@@ -7,16 +7,16 @@
 <?import javafx.scene.control.ScrollPane?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;" styleClass="edge-to-edge">
-  <VBox alignment="TOP_LEFT" spacing="10">
+  <VBox alignment="TOP_LEFT" spacing="10" minWidth="0" >
     <padding>
       <Insets top="15" right="15" bottom="5" left="15"/>
     </padding>
 
-    <Label fx:id="name" styleClass="person-detail-name" wrapText="true" />
-    <FlowPane fx:id="tags" />
-    <Label fx:id="phone" styleClass="cell_small_label" wrapText="true" />
-    <Label fx:id="address" styleClass="cell_small_label" wrapText="true" />
-    <Label fx:id="email" styleClass="cell_small_label" wrapText="true" />
-    <Label fx:id="status" styleClass="cell_small_label" visible="false" managed="false" />
+    <Label fx:id="name" styleClass="person-detail-name" minWidth="0" wrapText="true" />
+    <FlowPane fx:id="tags" minWidth="0" />
+    <Label fx:id="phone" styleClass="cell_small_label" minWidth="0" wrapText="true" />
+    <Label fx:id="address" styleClass="cell_small_label" minWidth="0" wrapText="true" />
+    <Label fx:id="email" styleClass="cell_small_label" minWidth="0" wrapText="true" />
+    <Label fx:id="status" styleClass="cell_small_label" minWidth="0" visible="false" managed="false" />
   </VBox>
 </ScrollPane>

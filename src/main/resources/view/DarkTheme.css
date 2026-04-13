@@ -192,6 +192,7 @@
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 16px;
     -fx-text-fill: -app-text-primary;
+    -fx-text-overrun: ellipsis;
 }
 
 /* Applies to styleClass="cell_small_label" in PersonListCard.fxml (phone/address/email). */
@@ -199,6 +200,7 @@
     -fx-font-family: "Segoe UI";
     -fx-font-size: 13px;
     -fx-text-fill: -app-text-secondary;
+    -fx-text-overrun: ellipsis;
 }
 
 /* Applies to nodes with styleClass="stack-pane" (e.g. CommandBox wrapper). */
@@ -223,6 +225,7 @@
     -fx-font-family: "Segoe UI";
     -fx-text-fill: -app-text-primary;
     -fx-opacity: 1;
+    -fx-text-overrun: ellipsis;
 }
 
 /* Applies to personListPanelPlaceholder host container; functional only (no visible shell). */
