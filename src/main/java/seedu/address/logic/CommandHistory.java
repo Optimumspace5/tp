@@ -7,6 +7,8 @@ import java.util.List;
  * Stores the history of commands executed.
  */
 public class CommandHistory {
+    private static final int MAX_ENTRIES = 100;
+
     private final List<String> history = new ArrayList<>();
     private int currentIndex = 0;
 
@@ -17,6 +19,11 @@ public class CommandHistory {
         if (command == null || command.trim().isEmpty()) {
             return;
         }
+
+        if (history.size() == MAX_ENTRIES) {
+            history.remove(0);
+        }
+
         history.add(command);
         currentIndex = history.size();
     }

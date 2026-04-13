@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
@@ -13,7 +14,9 @@ import javafx.scene.layout.Region;
  */
 public class ResultHistory extends UiPart<Region> {
 
+    private static final int MAX_ENTRIES = 200;
     private static final String FXML = "ResultHistory.fxml";
+
     // Non-persistent memory for the result history
     private static ArrayList<String> log = new ArrayList<>();
 
@@ -49,12 +52,16 @@ public class ResultHistory extends UiPart<Region> {
 
     private void appendEntry(String entry) {
         log.add(entry);
+        log = new ArrayList<>(capEntries(log, MAX_ENTRIES));
+        resultHistory.setText(String.join("\n\n", log));
+    }
 
-        if (resultHistory.getText().isEmpty()) {
-            resultHistory.setText(entry);
-        } else {
-            resultHistory.appendText("\n\n" + entry);
+    static List<String> capEntries(List<String> entries, int maxEntries) {
+        if (entries.size() <= maxEntries) {
+            return new ArrayList<>(entries);
         }
+
+        return new ArrayList<>(entries.subList(entries.size() - maxEntries, entries.size()));
     }
 
     /**

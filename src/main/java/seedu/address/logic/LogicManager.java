@@ -14,6 +14,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Person;
@@ -57,22 +58,26 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
+        // Take a snapshot to revert in case of storage failure
+        ReadOnlyAddressBook addressBookSnapshot = new AddressBook(model.getAddressBook());
         Command command = addressBookParser.parseCommand(commandText);
         CommandContext context = new CommandContext(model, modeManager.getMode());
         CommandResult commandResult = command.execute(context);
+
+        try {
+            storage.saveAddressBook(model.getAddressBook());
+        } catch (AccessDeniedException e) {
+            model.setAddressBook(addressBookSnapshot);
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+        } catch (IOException ioe) {
+            model.setAddressBook(addressBookSnapshot);
+            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+        }
 
         commandResult.getRequestedMode().ifPresent(requestedMode -> {
             modeManager.transitionTo(requestedMode);
             model.updateFilteredPersonList(Model.PREDICATE_SHOW_ALL_PERSONS, requestedMode);
         });
-
-        try {
-            storage.saveAddressBook(model.getAddressBook());
-        } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
-        } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
-        }
 
         return commandResult;
     }

@@ -22,7 +22,7 @@
 
       <VBox>
         <HBox VBox.vgrow="ALWAYS">
-          <VBox fx:id="leftPanel" styleClass="background" spacing="10" minWidth="420" prefWidth="450" HBox.hgrow="NEVER">
+          <VBox fx:id="leftPanel" styleClass="background" spacing="10" minWidth="420" prefWidth="450" HBox.hgrow="ALWAYS">
             <padding>
               <Insets top="10" right="10" bottom="10" left="10" />
             </padding>
@@ -40,7 +40,7 @@
                        prefHeight="240" />
           </VBox>
 
-          <VBox fx:id="rightPanel" styleClass="background" HBox.hgrow="ALWAYS">
+          <VBox fx:id="rightPanel" styleClass="background" minWidth="420" prefWidth="450" HBox.hgrow="ALWAYS">
             <padding>
               <Insets top="10" right="10" bottom="10" left="10" />
             </padding>

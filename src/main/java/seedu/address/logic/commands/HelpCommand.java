@@ -80,9 +80,9 @@ public class HelpCommand extends Command {
                     "clear"));
         case FindCommand.COMMAND_WORD:
             return new CommandResult(buildManual(
-                "Find contacts whose names match any keyword.",
+                    "Search contacts by any keyword (name, phone, address, email, tags).",
                     "find KEYWORD [MORE_KEYWORDS]",
-                    "find alex david"));
+                    "find alex 91234567 Geylang"));
         case ListCommand.COMMAND_WORD:
             return new CommandResult(buildManual(
                 "List all contacts in the current mode.",
@@ -122,7 +122,7 @@ public class HelpCommand extends Command {
             return new CommandResult(buildManual(
                 "Show command manuals.",
                     "help [COMMAND]",
-                    "help add\nhelp toggle"));
+                    "help add\nhelp edit"));
         default:
             throw new CommandException(String.format(MESSAGE_UNKNOWN_MANUAL, targetCommand));
         }
