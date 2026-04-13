@@ -822,6 +822,8 @@ safe from observation. Password input is not masked, and shoulder-surfing protec
 
 1. The application should **preserve data** across restarts and **recover cleanly** from invalid or corrupted stored data.
 2. Saved data should remain **human-readable** and be **validated** before it is loaded.
+3. In-memory command and result histories should be bounded to prevent unbounded memory growth
+  (retain only the most recent **100 commands** and **200 result entries**).
 
 #### Accessibility
 

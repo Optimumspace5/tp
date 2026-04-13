@@ -135,12 +135,14 @@ This is the main interface of Spyglass. It consists of:
 * **Contact Details** — Displays contact information in full detail (with email, address etc.) of the currently selected contact.
 * **Command Box** — This is where you enter commands to interact with Spyglass. Type your command here and press <kbd>Enter</kbd> to execute it.
 * **Result History** - Displays the list of feedback messages of the commands you entered in the command box.
+  It stores up to the **most recent 200 entries**.
 
 <box type="tip" seamless>
 
 **Tip — Keyboard Navigation:**
 
 * Use <kbd>Up</kbd> and <kbd>Down</kbd> in the Command Box to cycle through your past commands in the current mode, so you can quickly reuse and modify them.
+  Command history stores up to the **most recent 100 commands**.
 * Use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to cycle through the displayed contact list. The selected contact will be highlighted and its full details will appear in the Contact Details panel.
 
 </box>
