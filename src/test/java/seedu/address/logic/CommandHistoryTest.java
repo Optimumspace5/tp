@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 
 public class CommandHistoryTest {
 
+    private static final int HISTORY_CAP = 100;
+    private static final int COMMANDS_ADDED = HISTORY_CAP + 1;
+
     private CommandHistory history;
 
     @BeforeEach
@@ -74,5 +77,23 @@ public class CommandHistoryTest {
 
         assertEquals("", history.getPrevious());
         assertEquals("", history.getNext());
+    }
+
+    @Test
+    public void add_exceedsMaxEntries_dropsOldestCommand() {
+        for (int i = 1; i <= COMMANDS_ADDED; i++) {
+            history.add("cmd" + i);
+        }
+
+        // Newest command should still be available first.
+        assertEquals("cmd" + COMMANDS_ADDED, history.getPrevious());
+
+        // Traversing to the oldest retained command should skip the dropped one (cmd1).
+        String oldestRetained = "";
+        for (int i = 0; i < HISTORY_CAP - 1; i++) {
+            oldestRetained = history.getPrevious();
+        }
+        assertEquals("cmd2", oldestRetained);
+        assertEquals("cmd2", history.getPrevious());
     }
 }
