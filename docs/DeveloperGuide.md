@@ -586,12 +586,22 @@ follows the same pipeline with `UnlockCommandParser`.
     * 2a2. The contact is **not added**.
       Use case ends.
 
-* 2b. The new contact duplicates an existing contact in the address book.
-    * 2b1. Spyglass treats two contacts as duplicates only if they have the **same phone number** and the **same name ignoring case**.
-    * 2b2. If Spyglass is in **Unlocked mode**, Spyglass shows a duplicate-contact error and the contact is **not added**.
-    * 2b3. If Spyglass is in **Locked mode** and the duplicate is a hidden **Sensitive** contact, Spyglass **replaces** that hidden contact with the new contact.
-    * 2b4. If Spyglass is in **Locked mode** and the duplicate is a **Public** contact, Spyglass shows a duplicate-contact error and the contact is **not added**.
-      Use case ends.
+* 2b. The new contact duplicates an existing contact in the address book
+  (i.e. it has the **same phone number** and the **same name ignoring case**).
+    * 2b1. Spyglass is in **Unlocked mode**.
+        * 2b1a. Spyglass shows a duplicate-contact error.
+        * 2b1b. The contact is **not added**.
+          Use case ends.
+
+    * 2b2. Spyglass is in **Locked mode**.
+        * 2b2a. The duplicate is a hidden **Sensitive** contact.
+            * 2b2a1. Spyglass **replaces** the hidden contact with the new contact.
+              Use case resumes.
+
+        * 2b2b. The duplicate is a **Public** contact.
+            * 2b2b1. Spyglass shows a duplicate-contact error.
+            * 2b2b2. The contact is **not added**.
+              Use case ends.
 
 **Use case: UC5 - Edit a contact**
 
@@ -618,12 +628,22 @@ follows the same pipeline with `UnlockCommandParser`.
     * 2a2. The contact is **not changed**.
       Use case ends.
 
-* 3a. The edited contact duplicates an existing contact in the address book.
-    * 3a1. Spyglass treats two contacts as duplicates only if they have the **same phone number** and the **same name ignoring case**.
-    * 3a2. If Spyglass is in **Unlocked mode**, Spyglass shows a duplicate-contact error and the edit is **not applied**.
-    * 3a3. If Spyglass is in **Locked mode** and the duplicate is a hidden **Sensitive** contact, Spyglass **overrides** that hidden contact.
-    * 3a4. If Spyglass is in **Locked mode** and the duplicate is a **Public** contact, Spyglass shows a duplicate-contact error and the edit is **not applied**.
-      Use case ends.
+* 3a. The edited contact duplicates an existing contact in the address book
+  (i.e. it has the **same phone number** and the **same name ignoring case**).
+    * 3a1. Spyglass is in **Unlocked mode**.
+        * 3a1a. Spyglass shows a duplicate-contact error.
+        * 3a1b. The edit is **not applied**.
+          Use case ends.
+
+    * 3a2. Spyglass is in **Locked mode**.
+        * 3a2a. The duplicate is a hidden **Sensitive** contact.
+            * 3a2a1. Spyglass **overrides** the hidden contact with the new edits.
+              Use case resumes.
+
+        * 3a2b. The duplicate is a **Public** contact.
+            * 3a2b1. Spyglass shows a duplicate-contact error.
+            * 3a2b2. The edit is **not applied**.
+              Use case ends.
 
 **Use case: UC6 - Delete a contact**
 
