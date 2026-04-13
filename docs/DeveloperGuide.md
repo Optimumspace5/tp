@@ -332,13 +332,13 @@ The following state diagram summarizes the two application modes and their visib
 
 A few implementation details are worth noting:
 
-- The current mode is **stored centrally** in `AppModeManager`, not inside individual commands.
+- The current mode is **stored centrally** in `AppModeManager`.
 - `LockCommand` and `UnlockCommand` **do not directly mutate** global application state.
   They only **return** a `CommandResult` that requests a mode transition.
 - `LogicManager` is **responsible** for applying the mode transition and refreshing the filtered list.
 - `ModelManager` **maintains two filtered views** over the same combined person list:
   one for locked mode and one for unlocked mode.
-- In locked mode, **only persons** with `PersonStatus.LOCKED` are visible.
+- While in locked mode, the contact list is filtered to **display only public contacts** with the `PersonStatus.PUBLIC` enum attribute.
   In unlocked mode, the filtered list can **show the full combined list**.
 - A successful mode switch is **still followed by** `Storage#saveAddressBook(...)`,
   because `LogicManager` **persists** the address book after every command that completes without
@@ -747,7 +747,7 @@ The sequence diagram below shows the successful unlock path and the incorrect-pa
 
 1. User enters the **`setup`** command.
 2. Spyglass **switches** the UI to the password setup screen.
-3. User **enters** a new password and confirms it.
+3. User **enters** a new password.
 4. Spyglass **stores** the new password and **returns** to the main interface.
 
    Use case ends.
@@ -855,8 +855,8 @@ Given below are instructions to test Spyglass manually.
 ### Launch and Password Setup
 
 1. **Initial launch and setup**
-    1. Download the `spyglass.jar` file and copy it into an empty folder.
-    2. Open a terminal and run `java -jar spyglass.jar`.
+    1. Download the `Spyglass.jar` file and copy it into an empty folder.
+    2. Open a terminal and run `java -jar Spyglass.jar`.
     3. **Expected:** A **Password Setup** screen appears. The main interface is not accessible.
     4. Enter a secure password (e.g., `secure123`) and confirm it.
     5. **Expected:** The app transitions to the main GUI in **Locked mode**. Window title displays `AddressBook`. Sample public contacts are visible.
@@ -870,7 +870,7 @@ Given below are instructions to test Spyglass manually.
 3. **Persistence of Locked State on Re-launch**
     1. Prerequisites: App is in **Unlocked mode**.
     2. Exit the application using the `exit` command.
-    3. Re-launch the app using `java -jar spyglass.jar`.
+    3. Re-launch the app using `java -jar Spyglass.jar`.
     4. **Expected:** The app starts in **Locked mode** regardless of the exit state. Window title displays `AddressBook`.
 
 4. **Reconfiguring Password via Setup Command**
@@ -894,7 +894,7 @@ Given below are instructions to test Spyglass manually.
     1. Prerequisites: App is in **Locked mode**.
     2. Test case: `unlock wrongPassword`
     3. **Expected:** The window title remains `AddressBook`. No sensitive data is revealed.
-       <br>Output: `Unknown Command`
+       <br>Output: `Unknown command`
 
 3. **Locking the app**
     1. Prerequisites: App is in **Unlocked mode**.
@@ -920,7 +920,6 @@ Given below are instructions to test Spyglass manually.
     2. Test case: `add -n John Doe -p 98765432 -e john@example.com -a 123 Main St`
     3. **Expected:** Contact is added. Visible in both Locked and Unlocked modes.
        <br>Output: `New person added: John Doe; Phone: 98765432; Email: john@example.com; Address: 123 Main St; Tags: `
-       <br>John Public has been added to the address book!
 
 2. **Adding a sensitive contact**
     1. Prerequisites: App is in **Unlocked mode**.
@@ -1037,7 +1036,7 @@ Given below are instructions to test Spyglass manually.
     3. **Expected:** The help window does **not** list `unlock`, `lock`, `setup` or `toggle`.
     4. Test case: Type `unlock` into the command box.
     5. **Expected:** No suggestions for the existence of `unlock` command appear.
-       <br>Output: `Unknown Command`
+       <br>Output: `Unknown command`
 
 ### Saving Data
 
